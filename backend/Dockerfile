@@ -1,6 +1,6 @@
 # 使用官方 Python 3.12 映像作為基礎
-FROM python:3.12-slim-bullseye
-RUN apt-get update && apt-get install -y --no-install-recommends \
+FROM python:3.12-slim
+RUN apt-get update && apt-get install -y \
     libpq-dev \
     gcc \ 
     libc6-dev \  
@@ -12,7 +12,6 @@ WORKDIR /app
 # 複製依賴文件並安裝
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt && \
-    pip install event-emitter==0.2.0 --force-reinstall && \
     pip list
 # 複製整個後端程式碼
 COPY . .
