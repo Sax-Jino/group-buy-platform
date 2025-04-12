@@ -1,5 +1,5 @@
 # 使用官方 Python 3.8 映像作為基礎
-FROM python:3.8-slim
+FROM python:3.12-slim
 
 # 設定工作目錄
 WORKDIR /app
