@@ -11,8 +11,9 @@ WORKDIR /app
 
 # 複製依賴文件並安裝
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt && pip list
-
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install event-emitter==0.2.0 --force-reinstall && \
+    pip list
 # 複製整個後端程式碼
 COPY . .
 
