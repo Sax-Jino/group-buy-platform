@@ -1,0 +1,35 @@
+.home-page {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  
+  .home-page h1 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    color: #007bff;
+  }
+  
+  .home-page p {
+    font-size: 18px;
+    margin-bottom: 30px;
+    color: #666;
+  }
+  
+  .home-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .home-actions .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+  }
+  
+  .home-actions .btn:hover {
+    background-color: #0056b3;
+  }

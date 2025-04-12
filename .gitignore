@@ -1,0 +1,48 @@
+# Python相關
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+*.pid
+*.seed
+*.egg
+*.egg-info/
+dist/
+build/
+env/
+venv/
+.env
+
+# Node.js相關
+node_modules/
+dist/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 編輯器與IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 測試與臨時文件
+coverage/
+*.lcov
+*.cache
+*.tmp
+*.bak
+
+# 數據庫與備份
+*.sql
+*.sqlite3
+*.db
+*.backup
+
+# 系統文件
+.DS_Store
+Thumbs.db
