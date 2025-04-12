@@ -1,7 +1,6 @@
 # 使用官方 Python 3.12 映像作為基礎
 FROM python:3.12-slim-bullseye
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    <必要软件包> \
     libpq-dev \
     gcc \   
     && rm -rf /var/lib/apt/lists/*
