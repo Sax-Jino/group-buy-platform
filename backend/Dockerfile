@@ -1,12 +1,16 @@
 # 使用官方 Python 3.12 映像作為基礎
-FROM python:3.12-slim
-
+FROM python:3.12-slim-bullseye
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    <必要软件包> \
+    libpq-dev \
+    gcc \   
+    && rm -rf /var/lib/apt/lists/*
 # 設定工作目錄
 WORKDIR /app
 
 # 複製依賴文件並安裝
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt && pip list
 
 # 複製整個後端程式碼
 COPY . .
