@@ -2,7 +2,8 @@
 FROM python:3.12-slim-bullseye
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
-    gcc \   
+    gcc \ 
+    libc6-dev \  
     && rm -rf /var/lib/apt/lists/*
 # 設定工作目錄
 WORKDIR /app
