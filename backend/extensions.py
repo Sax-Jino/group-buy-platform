@@ -12,4 +12,4 @@ mail = Mail()
 babel = Babel()
 csrf = CSRFProtect()
 socketio = SocketIO()
-event_emitter = EventEmitter()
+event_emitter = EventEmitter() # 初始化事件發射器
