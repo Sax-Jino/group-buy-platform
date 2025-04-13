@@ -75,4 +75,4 @@ class ProductionConfig(Config):
 class TestingConfig(Config):
     DEBUG = True
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL', 'postgresql://user:your-db-password@db:5432/test_groupbuy_db')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
