@@ -6,7 +6,8 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - DATABASE_URL=${DATABASE_URL}
+      #- DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://postgres:Jone0401!@db:5432/group_buy_db
     depends_on:
       - db
     ports:
