@@ -47,7 +47,7 @@ def create_app(config_class=Config):
     # 在應用上下文內執行需要上下文的操作
     with app.app_context():
         # 創建資料庫表
-        db.create_all()
+        # 先移開db.create_all()
         # 註冊WebSocket與事件處理器
         register_socket_handlers(socketio)
         register_collaboration_events(event_emitter)
