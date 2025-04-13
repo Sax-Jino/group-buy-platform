@@ -1,24 +1,29 @@
-import { createSlice } from '@reduxjs/toolkit';
+const initialState = {
+    notifications: [],
+    proposals: [],
+    groups: []
+};
 
-const collaborationSlice = createSlice({
-    name: 'collaboration',
-    initialState: {
-        notifications: [],
-        proposals: [],
-        groups: []
-    },
-    reducers: {
-        setNotification(state, action) {
-            state.notifications.push(action.payload);
-        },
-        setProposals(state, action) {
-            state.proposals = action.payload;
-        },
-        setGroups(state, action) {
-            state.groups = action.payload;
-        }
+const collaborationReducer = (state = initialState, action) => {
+    switch (action.type) {
+        case 'SET_NOTIFICATION':
+            return {
+                ...state,
+                notifications: [...state.notifications, action.payload]
+            };
+        case 'SET_PROPOSALS':
+            return {
+                ...state,
+                proposals: action.payload
+            };
+        case 'SET_GROUPS':
+            return {
+                ...state,
+                groups: action.payload
+            };
+        default:
+            return state;
     }
-});
+};
 
-export const { setNotification, setProposals, setGroups } = collaborationSlice.actions;
-export default collaborationSlice.reducer;
+export default collaborationReducer;

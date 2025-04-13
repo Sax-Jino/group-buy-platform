@@ -44,18 +44,18 @@ def create_app(config_class=Config):
     app.register_blueprint(audit_routes.bp, url_prefix='/api/audit')
     app.register_blueprint(collaboration_routes.bp, url_prefix='/api/collaborations')
 
-    # 註冊WebSocket與事件處理器
-    register_socket_handlers(socketio)
-    register_collaboration_events(event_emitter)
-    app.logger.info("Collaboration events registered")
-
-    # 初始化中間件與任務
-    init_performance_monitoring(app)
-    schedule_settlement_tasks(app)
-    schedule_backup_tasks(app)
-
+    # 在應用上下文內執行需要上下文的操作
     with app.app_context():
+        # 創建資料庫表
         db.create_all()
+        # 註冊WebSocket與事件處理器
+        register_socket_handlers(socketio)
+        register_collaboration_events(event_emitter)
+        app.logger.info("Collaboration events registered")
+        # 初始化中間件與任務
+        init_performance_monitoring(app)
+        schedule_settlement_tasks(app)
+        schedule_backup_tasks(app)
 
     @app.route('/api/health', methods=['GET'])
     def health_check():
