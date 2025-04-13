@@ -9,12 +9,10 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False)  # 'supplier', 'big_mom', 'middle_mom', 'consumer', 'admin'
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))
-    line_id = db.Column(db.String(50))  # 用於Line通知
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
 
-    # 關聯
     orders = db.relationship('Order', backref='user', lazy='dynamic')
     investments = db.relationship('CollaborationInvestment', backref='user', lazy='dynamic')
     chat_messages = db.relationship('CollaborationChat', backref='user', lazy='dynamic')

@@ -28,16 +28,9 @@ class Config:
     MAIL_SERVER = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
     MAIL_PORT = int(os.getenv('MAIL_PORT', 587))
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.getenv('MAIL_USERNAME', 'your-email@gmail.com')
-    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', 'your-app-password')
-    MAIL_DEFAULT_SENDER = os.getenv('MAIL_USERNAME', 'your-email@gmail.com')
-
-    STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', 'your-stripe-secret-key')
-    STRIPE_CURRENCY = 'twd'
-
-    LINE_CHANNEL_ACCESS_TOKEN = os.getenv('LINE_CHANNEL_ACCESS_TOKEN', 'your-line-token')
-    LINE_CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET', 'your-line-secret')
-    LINE_NOTIFY_URL = 'https://notify-api.line.me/api/notify'
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME')
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.getenv('MAIL_USERNAME')
 
     UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'static/uploads')
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -76,10 +69,10 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://user:password@host:5432/groupbuy_db')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
     LOG_LEVEL = 'INFO'
 
 class TestingConfig(Config):
     DEBUG = True
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'postgresql://test_user:test_password@localhost:5432/test_groupbuy_db'
+    SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL', 'postgresql://user:your-db-password@db:5432/test_groupbuy_db')

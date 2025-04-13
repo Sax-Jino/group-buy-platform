@@ -31,7 +31,6 @@ def create_app(config_class=Config):
 
     # 設置日誌與事件
     app.logger.handlers = logger.handlers
-    event_emitter.init_app(app)
 
     # 速率限制
     init_rate_limiter(app)
@@ -48,6 +47,7 @@ def create_app(config_class=Config):
     # 註冊WebSocket與事件處理器
     register_socket_handlers(socketio)
     register_collaboration_events(event_emitter)
+    app.logger.info("Collaboration events registered")
 
     # 初始化中間件與任務
     init_performance_monitoring(app)

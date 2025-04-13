@@ -7,7 +7,6 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - DATABASE_URL=${DATABASE_URL}
-      - LINE_CHANNEL_ACCESS_TOKEN=${LINE_CHANNEL_ACCESS_TOKEN}
     depends_on:
       - db
     ports:
