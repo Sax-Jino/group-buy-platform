@@ -1,11 +1,10 @@
-import { createStore, combineReducers, applyMiddleware } from 'redux';
-import thunk from 'redux-thunk';
+import { configureStore } from '@reduxjs/toolkit';
 import collaborationReducer from './reducers/collaborationReducer';
 
-const rootReducer = combineReducers({
-    collaboration: collaborationReducer
+const store = configureStore({
+    reducer: {
+        collaboration: collaborationReducer
+    }
 });
-
-const store = createStore(rootReducer, applyMiddleware(thunk));
 
 export default store;
