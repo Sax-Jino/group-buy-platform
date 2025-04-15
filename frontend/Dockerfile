@@ -1,5 +1,5 @@
-# 使用官方 Node.js 16 映像作為基礎
-FROM node:16-alpine
+# 第一階段：構建前端（使用最新 Node.js 20）
+FROM node:20-alpine AS builder
 
 # 設定工作目錄
 WORKDIR /app
@@ -14,9 +14,9 @@ COPY . .
 # 構建生產環境
 RUN npm run build
 
-# 使用 nginx 提供靜態文件
-FROM nginx:alpine
-COPY --from=0 /app/build /usr/share/nginx/html
+# 第二階段：提供靜態檔案
+FROM nginx:1.26-alpine
+COPY --from=builder /app/build /usr/share/nginx/html
 
 # 開放端口
 EXPOSE 80
