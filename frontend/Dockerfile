@@ -1,5 +1,5 @@
 # 第一階段：構建前端（使用最新 Node.js 20）
-FROM node:20-alpine AS builder
+FROM node:23-slim AS builder
 
 # 設定工作目錄
 WORKDIR /app
@@ -15,7 +15,7 @@ COPY . .
 RUN npm run build
 
 # 第二階段：提供靜態檔案
-FROM nginx:1.26-alpine
+FROM nginx:1.27-alpine-slim
 COPY --from=builder /app/build /usr/share/nginx/html
 
 # 開放端口
