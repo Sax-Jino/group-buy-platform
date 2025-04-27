@@ -1,16 +1,18 @@
 from extensions import socketio, mail
 from flask_mail import Message
 from config import Config
+from flask import current_app
 
 def register_collaboration_events(event_emitter):
-    from flask import current_app
-
     def log_with_context(level, message):
-        with current_app.app_context():
+        app = current_app._get_current_object() if current_app else None
+        if app:
             if level == 'info':
-                current_app.logger.info(message)
+                app.logger.info(message)
             elif level == 'error':
-                current_app.logger.error(message)
+                app.logger.error(message)
+        else:
+            print(f"{level.upper()}: {message}")
 
     def handle_new_chat_message(group_id, user_id, message):
         """
