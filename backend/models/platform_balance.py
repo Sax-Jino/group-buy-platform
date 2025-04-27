@@ -1,12 +1,25 @@
 from extensions import db
 from datetime import datetime
+from sqlalchemy.dialects.postgresql import JSON
 
 class PlatformBalance(db.Model):
-    __tablename__ = 'platform_balances'
-    id = db.Column(db.Integer, primary_key=True, index=True)
-    amount = db.Column(db.Float, nullable=False, default=0.0)  # 平台總餘額
-    transaction_type = db.Column(db.String(20), nullable=False)  # 'income', 'expense'
-    description = db.Column(db.String(255))  # 交易描述
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    related_id = db.Column(db.Integer)  # 關聯的訂單、退款或結算ID
-    related_type = db.Column(db.String(20))  # 'order', 'refund', 'settlement'
+    __tablename__ = 'platform_balance'
+    id = db.Column(db.Integer, primary_key=True)
+    period = db.Column(db.String(8), nullable=False)
+    current_platform_balance = db.Column(db.Float, nullable=False)
+    unsettled_amount = db.Column(db.Float, nullable=False)
+    unsettled_details = db.Column(JSON)
+    frozen_amount = db.Column(db.Float, default=0)
+    current_supplier_total = db.Column(db.Float, nullable=False)
+    current_mom_total = db.Column(db.Float, nullable=False)
+    current_platform_profit = db.Column(db.Float, nullable=False)
+    tax_pending = db.Column(db.Float, nullable=False)
+    tax_payment_date = db.Column(db.DateTime)
+    tax_payment_cycle = db.Column(db.String(20), default='monthly')
+    tax_payment_schedule = db.Column(JSON)
+    refund_deduction_log = db.Column(JSON)
+    settlement_date = db.Column(db.DateTime, nullable=False)
+    company_account_id = db.Column(db.Integer, db.ForeignKey('company_account.id'), nullable=False)
+    is_payment_confirmed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

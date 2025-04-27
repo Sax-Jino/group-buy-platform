@@ -3,17 +3,30 @@ from datetime import datetime
 
 class Product(db.Model):
     __tablename__ = 'products'
-    id = db.Column(db.Integer, primary_key=True, index=True)
+    id = db.Column(db.Integer, primary_key=True)
+    supplier_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text)
+    cost = db.Column(db.Float, nullable=False)
     price = db.Column(db.Float, nullable=False)
-    stock = db.Column(db.Integer, nullable=False, default=0)
-    supplier_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-    category = db.Column(db.String(50))  # e.g., 'food', 'clothing'
-    image_url = db.Column(db.String(255))  # 商品圖片URL
+    market_price = db.Column(db.Float)
+    source = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    stock = db.Column(db.Integer)
+    stock_note = db.Column(db.String(50))
+    image_url = db.Column(db.String(200), nullable=False)
+    video_url = db.Column(db.String(200))
+    status = db.Column(db.String(20), default='pending_review')  # pending_review, active, inactive
+    on_shelf_date = db.Column(db.DateTime, nullable=False)
+    off_shelf_date = db.Column(db.DateTime, nullable=False)
+    supplier_fee_rate = db.Column(db.Float, default=0.02)
+    platform_fee_rate = db.Column(db.Float, default=0.02)
+    referrer_bonus_rate = db.Column(db.Float, default=0.02)
+    referrer_id = db.Column(db.String(36), db.ForeignKey('users.id'))
+    uploader_id = db.Column(db.String(36), db.ForeignKey('users.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    is_active = db.Column(db.Boolean, default=True)
 
     # 關聯
     orders = db.relationship('Order', backref='product', lazy='dynamic')
+    reviews = db.relationship('ProductReview', backref='product', lazy='dynamic')
+    questions = db.relationship('ProductQA', backref='product', lazy='dynamic')
