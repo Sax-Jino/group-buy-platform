@@ -1,16 +1,11 @@
-class EventEmitter:
-    def __init__(self):
-        self.listeners = {}
+from extensions import event_emitter
 
-    def init_app(self, app):
-        self.app = app
-
-    def on(self, event_name, handler):
-        if event_name not in self.listeners:
-            self.listeners[event_name] = []
-        self.listeners[event_name].append(handler)
-
-    def emit(self, event_name, *args, **kwargs):
-        if event_name in self.listeners:
-            for handler in self.listeners[event_name]:
-                handler(*args, **kwargs)
+def emit_event(event_name, data=None):
+    """
+    發送事件到事件發射器
+    
+    Args:
+        event_name (str): 事件名稱
+        data: 要發送的數據
+    """
+    event_emitter.emit(event_name, data)
