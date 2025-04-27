@@ -3,14 +3,15 @@ FROM python:3.12-slim
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     gcc \ 
-    libc6-dev \  
+    libc6-dev \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 # 設定工作目錄
 WORKDIR /app
 
 
 # 複製依賴文件並安裝
-COPY requirements.txt .
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt && \
     pip list
 # 複製整個後端程式碼
