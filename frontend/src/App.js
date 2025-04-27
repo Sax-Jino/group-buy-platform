@@ -14,6 +14,7 @@ import RecipientPage from './pages/RecipientPage';
 import CheckoutPage from './pages/CheckoutPage';
 import PaymentPage from './pages/PaymentPage';
 import CartPage from './pages/CartPage';
+import Register from './pages/Register';
 import NotificationHandler from './components/NotificationHandler';
 import './styles/global.css';
 
@@ -30,6 +31,7 @@ function App() {
                             <Route path="/products" element={<ProductPage />} />
                             <Route path="/orders" element={<OrderPage />} />
                             <Route path="/login" element={<LoginPage />} />
+                            <Route path="/register" element={<Register />} />
                             <Route path="/profile" element={<ProfilePage />} />
                             <Route path="/collaborations" element={<CollaborationPage />} />
                             <Route path="/recipients" element={<RecipientPage />} />

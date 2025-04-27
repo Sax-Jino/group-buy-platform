@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import '../styles/LoginPage.css';
 
 const LoginPage = () => {
@@ -54,7 +54,7 @@ const LoginPage = () => {
         <button type="submit">登入</button>
       </form>
       <p>
-        還沒有帳號？<a href="/register">註冊</a>
+        還沒有帳號？<Link to="/register">註冊</Link>
       </p>
     </div>
   );
