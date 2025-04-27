@@ -16,6 +16,11 @@ RUN npm run build
 
 # 第二階段：提供靜態檔案
 FROM nginx:1.27-alpine-slim
+
+# 複製自定義的 nginx 配置
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# 複製構建後的檔案
 COPY --from=builder /app/build /usr/share/nginx/html
 
 # 開放端口
