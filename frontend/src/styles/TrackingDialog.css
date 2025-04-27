@@ -1,0 +1,161 @@
+.tracking-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.tracking-content {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+.tracking-header {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.tracking-header h3 {
+  margin: 0 0 10px;
+  color: #333;
+}
+
+.tracking-info {
+  color: #666;
+}
+
+.tracking-info p {
+  margin: 5px 0;
+}
+
+.tracking-timeline {
+  padding: 20px 0;
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 30px;
+  margin-bottom: 25px;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-point {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  background-color: #007bff;
+  border-radius: 50%;
+}
+
+.timeline-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 12px;
+  width: 2px;
+  height: calc(100% + 13px);
+  background-color: #ddd;
+}
+
+.timeline-item.current .timeline-point {
+  background-color: #28a745;
+  width: 16px;
+  height: 16px;
+  left: -2px;
+}
+
+.timeline-content {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+.timeline-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.timeline-status {
+  font-weight: bold;
+  color: #333;
+}
+
+.timeline-time {
+  color: #666;
+  font-size: 14px;
+}
+
+.timeline-location {
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.timeline-description {
+  color: #333;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.error-message {
+  color: #721c24;
+  background-color: #f8d7da;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+@media (max-width: 768px) {
+  .tracking-content {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .timeline-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .timeline-time {
+    margin-top: 5px;
+  }
+}

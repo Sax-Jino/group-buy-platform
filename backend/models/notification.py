@@ -9,6 +9,7 @@ class Notification(db.Model):
     message = db.Column(db.Text, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    related_id = db.Column(db.Integer)  # 相關的訂單、退貨等ID
     
     # 關聯
-    user = db.relationship('User', backref='notifications', lazy='dynamic')
+    user = db.relationship('User', backref='notifications')

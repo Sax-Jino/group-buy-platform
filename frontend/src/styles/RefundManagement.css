@@ -1,0 +1,74 @@
+.refund-management {
+    padding: 24px;
+}
+
+.statistics-cards {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    flex: 1;
+    text-align: center;
+}
+
+.stat-card h3 {
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.stat-card p {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
+    color: #1890ff;
+}
+
+.refund-details {
+    padding: 16px;
+}
+
+.detail-item {
+    margin-bottom: 16px;
+}
+
+.detail-item label {
+    display: block;
+    margin-bottom: 8px;
+    color: #666;
+    font-weight: 500;
+}
+
+.detail-item p {
+    margin: 0;
+    color: #333;
+}
+
+.image-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.image-item {
+    width: 120px;
+    height: 120px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.image-item:hover {
+    border-color: #1890ff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

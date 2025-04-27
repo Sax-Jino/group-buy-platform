@@ -1,0 +1,86 @@
+.refund-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.refund-content {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 24px;
+    width: 90%;
+    max-width: 600px;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.refund-content h3 {
+    margin: 0 0 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #eee;
+    color: #333;
+}
+
+.close-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+}
+
+.close-button:hover {
+    color: #333;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.ant-form-item-label > label {
+    color: #333;
+    font-weight: 500;
+}
+
+.ant-radio-wrapper {
+    margin-right: 24px;
+}
+
+.ant-upload-list-picture {
+    margin-top: 8px;
+}
+
+.ant-form-item-extra {
+    color: #999;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+    .refund-content {
+        width: 95%;
+        padding: 16px;
+    }
+
+    .action-buttons {
+        margin-top: 16px;
+    }
+
+    .ant-radio-wrapper {
+        margin-right: 16px;
+    }
+}

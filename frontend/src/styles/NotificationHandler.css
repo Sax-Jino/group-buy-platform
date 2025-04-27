@@ -1,0 +1,63 @@
+.notification-badge {
+    cursor: pointer;
+    margin-right: 24px;
+}
+
+.notification-icon {
+    font-size: 20px;
+    color: #666;
+}
+
+.notification-item {
+    cursor: pointer;
+    padding: 12px;
+    transition: background-color 0.3s;
+}
+
+.notification-item:hover {
+    background-color: #f5f5f5;
+}
+
+.notification-item.unread {
+    background-color: #e6f7ff;
+}
+
+.notification-item.unread:hover {
+    background-color: #bae7ff;
+}
+
+.notification-time {
+    color: #999;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.load-more {
+    text-align: center;
+    margin: 12px 0;
+    height: 32px;
+    line-height: 32px;
+}
+
+.ant-drawer-body {
+    padding: 0;
+}
+
+.ant-list-item-meta-title {
+    margin-bottom: 4px !important;
+    color: #333;
+}
+
+.ant-list-item-meta-description {
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .notification-badge {
+        margin-right: 16px;
+    }
+    
+    .notification-icon {
+        font-size: 18px;
+    }
+}

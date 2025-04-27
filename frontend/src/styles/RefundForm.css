@@ -1,0 +1,36 @@
+.refund-form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.refund-form .ant-form-item {
+    margin-bottom: 24px;
+}
+
+.refund-form .ant-upload-list {
+    margin-top: 8px;
+}
+
+.refund-form .form-actions {
+    margin-top: 32px;
+    margin-bottom: 0;
+    text-align: right;
+}
+
+.refund-form .ant-input-number {
+    width: 100%;
+}
+
+.refund-form .ant-upload-list-picture .ant-upload-list-item {
+    padding: 8px;
+}
+
+.refund-form .ant-form-item-extra {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
