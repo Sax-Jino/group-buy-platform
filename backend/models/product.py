@@ -30,4 +30,4 @@ class Product(db.Model):
     # 關聯
     orders = db.relationship('Order', backref='product', lazy='dynamic')
     reviews = db.relationship('ProductReview', backref='product', lazy='dynamic')
-    qa_items = db.relationship('ProductQA', backref='product', lazy='dynamic')
+    questions = db.relationship('ProductQA', backref='product', lazy='dynamic', foreign_keys='ProductQA.product_id')
