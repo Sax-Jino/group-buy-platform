@@ -3,18 +3,18 @@ from datetime import datetime
 
 class ProductReview(db.Model):
     __tablename__ = 'product_reviews'
+    
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
-    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)  # 1-5
     comment = db.Column(db.Text)
+    image_urls = db.Column(db.JSON)  # 存儲多個圖片URL
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # 關聯
-    product = db.relationship('Product', backref='reviews')
-    user = db.relationship('User', backref='reviews')
-    order = db.relationship('Order', backref='review')
+    user = db.relationship('User', backref=db.backref('product_reviews', lazy='dynamic'))
 
 class ProductQA(db.Model):
     __tablename__ = 'product_qa'
