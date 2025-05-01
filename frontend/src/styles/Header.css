@@ -1,86 +1,208 @@
 .header {
-  background-color: #fff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000;
 }
 
-.header-container {
+.header-content {
   max-width: 1200px;
   margin: 0 auto;
   padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-  text-decoration: none;
-}
-
-.nav-menu {
   display: flex;
   align-items: center;
   gap: 20px;
 }
 
-.nav-menu a {
-  color: #333;
+.logo {
+  color: #28a745;
   text-decoration: none;
-  font-size: 16px;
-  transition: color 0.2s;
+  font-size: 24px;
+  font-weight: bold;
+  white-space: nowrap;
 }
 
-.nav-menu a:hover {
-  color: #007bff;
+.search-container {
+  flex: 1;
+  max-width: 600px;
 }
 
-.logout-btn {
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.search-icon {
+  display: none;
   cursor: pointer;
+  font-size: 20px;
 }
 
-.logout-btn:hover {
-  background-color: #c82333;
-}
-
-.cart-link {
+.cart {
   position: relative;
-  padding-right: 8px;
+  text-decoration: none;
+  font-size: 20px;
 }
 
-.cart-badge {
+.cart-count {
   position: absolute;
   top: -8px;
   right: -8px;
   background-color: #dc3545;
   color: white;
   font-size: 12px;
-  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
   min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
+  text-align: center;
+}
+
+.user-menu-container {
+  position: relative;
+}
+
+.user {
+  cursor: pointer;
+  color: #333;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 4px;
+  gap: 5px;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 150px;
+  margin-top: 8px;
+  padding: 8px 0;
+  z-index: 1000;
+}
+
+.user-dropdown a,
+.user-dropdown button {
+  display: block;
+  padding: 8px 16px;
+  color: #333;
+  text-decoration: none;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.user-dropdown a:hover,
+.user-dropdown button:hover {
+  background-color: #f8f9fa;
+  color: #28a745;
+}
+
+.login-btn {
+  padding: 8px 16px;
+  background-color: #28a745;
+  color: white;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.login-btn:hover {
+  background-color: #218838;
+}
+
+.category-bar {
+  background-color: #f8f9fa;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.category-bar .inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-around;
+  padding: 0 20px;
+}
+
+.category {
+  position: relative;
+  padding: 8px 16px;
+  cursor: pointer;
+  color: #333;
+}
+
+.category:hover {
+  color: #28a745;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  min-width: 150px;
+  z-index: 1000;
+}
+
+.category:hover .dropdown {
+  display: block;
+}
+
+.dropdown a {
+  display: block;
+  padding: 8px 16px;
+  color: #333;
+  text-decoration: none;
+}
+
+.dropdown a:hover {
+  background-color: #f8f9fa;
+  color: #28a745;
 }
 
 @media (max-width: 768px) {
-  .nav-menu {
-    gap: 15px;
-    font-size: 14px;
+  .header-content {
+    padding: 10px 15px;
   }
-  
-  .logo {
-    font-size: 20px;
+
+  .search-container {
+    display: none;
+  }
+
+  .search-icon {
+    display: block;
+  }
+
+  .nav-right {
+    gap: 15px;
+  }
+
+  .user span {
+    display: none;
+  }
+
+  .category-bar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .category-bar .inner {
+    width: max-content;
+    padding: 0 15px;
+  }
+
+  .category {
+    padding: 8px 12px;
+    white-space: nowrap;
   }
 }

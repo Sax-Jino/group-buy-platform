@@ -4,23 +4,21 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 class AuthService:
     def register(self, data):
-        required_fields = ['email', 'password', 'role', 'name']
+        required_fields = ['email', 'password', 'name']
         if not all(field in data for field in required_fields):
             raise ValueError("Missing required fields")
         
         if User.query.filter_by(email=data['email']).first():
             raise ValueError("Email already registered")
         
-        if data['role'] not in ['supplier', 'big_mom', 'middle_mom', 'consumer', 'admin']:
-            raise ValueError("Invalid role")
-        
         user = User(
             email=data['email'],
             password_hash=generate_password_hash(data['password']),
-            role=data['role'],
+            role='consumer',  # 預設角色為消費者
             name=data['name'],
             phone=data.get('phone'),
-            line_id=data.get('line_id')
+            line_id=data.get('line_id'),
+            is_active=True
         )
         db.session.add(user)
         db.session.commit()

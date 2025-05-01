@@ -1,28 +1,154 @@
-.loading-spinner {
+/* 基本載入動畫 */
+.loading-spinner-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100%;
-    padding: 50px;
-  }
-  
-  .spinner {
-    width: 40px;
-    height: 40px;
+    min-height: calc(100vh - 80px);
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
     border: 4px solid #f3f3f3;
-    border-top: 4px solid #007bff;
+    border-top: 4px solid #28A745;
     border-radius: 50%;
     animation: spin 1s linear infinite;
-  }
-  
-  .loading-spinner p {
-    margin-top: 10px;
-    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.loading-spinner-container p {
     color: #666;
-  }
-  
-  @keyframes spin {
+    font-size: 16px;
+}
+
+/* 商品骨架屏動畫 */
+@keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-  }
+}
+
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0.6; }
+}
+
+/* 商品列表骨架屏 */
+.products-skeleton {
+    padding-top: 80px;
+}
+
+.banner-skeleton {
+    width: 100%;
+    height: 400px;
+    background-color: #eee;
+    margin-bottom: 20px;
+    animation: pulse 1.5s infinite;
+}
+
+.main-content {
+    display: flex;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 20px;
+    gap: 20px;
+}
+
+.sidebar-skeleton {
+    width: 20%;
+    padding-right: 20px;
+}
+
+.product-item-skeleton {
+    height: 60px;
+    background-color: #eee;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    animation: pulse 1.5s infinite;
+}
+
+.grid-skeleton {
+    width: 80%;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+}
+
+.product-card-skeleton {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 10px;
+}
+
+.image-skeleton {
+    width: 100%;
+    height: 200px;
+    background-color: #eee;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    animation: pulse 1.5s infinite;
+}
+
+.title-skeleton {
+    height: 20px;
+    background-color: #eee;
+    margin-bottom: 10px;
+    width: 80%;
+    border-radius: 4px;
+    animation: pulse 1.5s infinite;
+}
+
+.price-skeleton {
+    height: 24px;
+    background-color: #eee;
+    width: 60%;
+    border-radius: 4px;
+    animation: pulse 1.5s infinite;
+}
+
+/* 響應式設計 */
+@media (max-width: 1200px) {
+    .grid-skeleton {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .grid-skeleton {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .banner-skeleton {
+        height: 300px;
+    }
+
+    .main-content {
+        flex-direction: column;
+    }
+
+    .sidebar-skeleton {
+        width: 100%;
+        padding-right: 0;
+        margin-bottom: 20px;
+    }
+
+    .grid-skeleton {
+        width: 100%;
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .grid-skeleton {
+        grid-template-columns: 1fr;
+    }
+
+    .banner-skeleton {
+        height: 200px;
+    }
+}

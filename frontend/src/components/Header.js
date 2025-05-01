@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import SearchBar from './SearchBar';
 import '../styles/Header.css';
 
 const Header = () => {
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem('token');
   const cartItems = useSelector(state => state.cart.items);
-  
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   const handleLogout = () => {
@@ -16,32 +17,94 @@ const Header = () => {
   };
 
   return (
-    <header className="header">
-      <div className="header-container">
-        <Link to="/" className="logo">團購平台</Link>
-        <nav className="nav-menu">
-          <Link to="/products">商品</Link>
-          <Link to="/orders">訂單</Link>
-          <Link to="/collaborations">協作</Link>
-          {isAuthenticated && (
-            <>
-              <Link to="/recipients">收貨人</Link>
-              <Link to="/profile">個人資料</Link>
-              <Link to="/cart" className="cart-link">
-                購物車
-                {cartItemCount > 0 && (
-                  <span className="cart-badge">{cartItemCount}</span>
+    <>
+      <header className="header">
+        <div className="header-content">
+          <Link to="/" className="logo">
+            團購平台
+          </Link>
+          
+          <div className="search-container">
+            <SearchBar />
+          </div>
+          
+          <div className="nav-right">
+            <span className="search-icon" onClick={() => navigate('/search')}>🔍</span>
+            <Link to="/cart" className="cart">
+              🛒
+              {cartItemCount > 0 && (
+                <span className="cart-count">{cartItemCount}</span>
+              )}
+            </Link>
+            {isAuthenticated ? (
+              <div className="user-menu-container">
+                <span className="user" onClick={() => setShowUserMenu(!showUserMenu)}>
+                  個人中心 ▼
+                </span>
+                {showUserMenu && (
+                  <div className="user-dropdown">
+                    <Link to="/profile">個人資料</Link>
+                    <Link to="/orders">我的訂單</Link>
+                    <Link to="/favorites">收藏商品</Link>
+                    <button onClick={handleLogout}>登出</button>
+                  </div>
                 )}
-              </Link>
-              <button onClick={handleLogout} className="logout-btn">登出</button>
-            </>
-          )}
-          {!isAuthenticated && (
-            <Link to="/login">登入</Link>
-          )}
-        </nav>
+              </div>
+            ) : (
+              <Link to="/login" className="login-btn">登入</Link>
+            )}
+          </div>
+        </div>
+      </header>
+      
+      <div className="category-bar">
+        <div className="category">
+          食品零食
+          <div className="dropdown">
+            <Link to="/category/snacks">休閒零食</Link>
+            <Link to="/category/drinks">飲品茶類</Link>
+            <Link to="/category/dried-food">乾貨食材</Link>
+            <Link to="/category/health-food">保健食品</Link>
+          </div>
+        </div>
+        <div className="category">
+          美妝保養
+          <div className="dropdown">
+            <Link to="/category/skin-care">保養品</Link>
+            <Link to="/category/makeup">彩妝品</Link>
+            <Link to="/category/body-care">身體清潔</Link>
+            <Link to="/category/beauty-tools">美容工具</Link>
+          </div>
+        </div>
+        <div className="category">
+          媽咪寶貝
+          <div className="dropdown">
+            <Link to="/category/baby-care">嬰兒用品</Link>
+            <Link to="/category/mom-care">孕婦用品</Link>
+            <Link to="/category/toys">玩具教具</Link>
+            <Link to="/category/children-clothes">童裝童鞋</Link>
+          </div>
+        </div>
+        <div className="category">
+          生活日用
+          <div className="dropdown">
+            <Link to="/category/household">家居用品</Link>
+            <Link to="/category/kitchenware">廚房用品</Link>
+            <Link to="/category/storage">收納用品</Link>
+            <Link to="/category/cleaning">清潔用品</Link>
+          </div>
+        </div>
+        <div className="category">
+          3C家電
+          <div className="dropdown">
+            <Link to="/category/3c">3C配件</Link>
+            <Link to="/category/electronics">生活家電</Link>
+            <Link to="/category/mobile">手機週邊</Link>
+            <Link to="/category/computer">電腦週邊</Link>
+          </div>
+        </div>
       </div>
-    </header>
+    </>
   );
 };
 
