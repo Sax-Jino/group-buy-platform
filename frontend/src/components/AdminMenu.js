@@ -7,7 +7,8 @@ import {
   ShopOutlined,
   DollarOutlined,
   AuditOutlined,
-  SettingOutlined
+  SettingOutlined,
+  LineChartOutlined
 } from '@ant-design/icons';
 
 const AdminMenu = () => {
@@ -27,6 +28,9 @@ const AdminMenu = () => {
       </Menu.Item>
       <Menu.Item key="audit" icon={<AuditOutlined />}>
         <Link to="/audit">審計管理</Link>
+      </Menu.Item>
+      <Menu.Item key="financial-reports" icon={<LineChartOutlined />}>
+        <Link to="/financial-reports">財務報表</Link>
       </Menu.Item>
       <Menu.Item key="settings" icon={<SettingOutlined />}>
         <Link to="/admin/settings">系統設置</Link>

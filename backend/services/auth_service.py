@@ -11,13 +11,22 @@ class AuthService:
         if User.query.filter_by(email=data['email']).first():
             raise ValueError("Email already registered")
         
+        referral_id = data.get('referral_id')
+        referrer = None
+        if referral_id:
+            referrer = User.query.get(referral_id)
+            if not referrer:
+                raise ValueError("Invalid referral ID")
+        
         user = User(
             email=data['email'],
             password_hash=generate_password_hash(data['password']),
-            role='consumer',  # 預設角色為消費者
+            role='member',  # 預設角色改為 member
             name=data['name'],
             phone=data.get('phone'),
             line_id=data.get('line_id'),
+            referrer_id=referrer.id if referrer else None,
+            group_mom_level=0,  # 預設團媽等級為 0
             is_active=True
         )
         db.session.add(user)

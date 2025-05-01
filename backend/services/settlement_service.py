@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
 from sqlalchemy import and_, or_
 from models.order import Order
-from models.settlement import Settlement, UnsettledOrder, SettlementStatement
+from models.settlement import Settlement, UnsettledOrder, SettlementStatement, SettlementItem
 from models.user import User
 from extensions import db
 from config import Config
+from utils.profit_calculator import ProfitCalculator
 
 class SettlementService:
     @staticmethod
@@ -192,3 +193,134 @@ class SettlementService:
             'tax_amount': db.session.query(db.func.sum(Order.tax_amount))\
                 .filter(Order.status == 'completed').scalar() or 0
         }
+
+    @staticmethod
+    def create_settlement(orders, settlement_type='mom'):
+        """
+        建立結算單
+        """
+        if not orders:
+            raise ValueError("未提供訂單")
+            
+        # 建立結算單
+        settlement = Settlement(
+            type=settlement_type,
+            status='pending',
+            created_at=datetime.utcnow()
+        )
+        db.session.add(settlement)
+        
+        # 計算各訂單分潤
+        for order in orders:
+            profits = ProfitCalculator.calculate_order_profit(
+                order.selling_price,
+                order.cost,
+                order.user_id
+            )
+            
+            # 建立結算項目
+            item = SettlementItem(
+                settlement=settlement,
+                order=order,
+                amount=sum([
+                    profits['big_mom_profit'],
+                    profits['middle_mom_profit'],
+                    profits['small_mom_profit']
+                ]),
+                details=profits,
+                status='pending'
+            )
+            db.session.add(item)
+        
+        db.session.commit()
+        return settlement
+    
+    @staticmethod
+    def approve_settlement(settlement_id, admin_id):
+        """
+        審核通過結算單
+        """
+        settlement = Settlement.query.get(settlement_id)
+        if not settlement:
+            raise ValueError("結算單不存在")
+            
+        admin = User.query.get(admin_id)
+        if not admin or admin.role != 'admin':
+            raise ValueError("只有管理員可以審核結算單")
+            
+        if settlement.status != 'pending':
+            raise ValueError("此結算單已被處理")
+            
+        settlement.status = 'approved'
+        settlement.approved_at = datetime.utcnow()
+        settlement.approved_by = admin_id
+        
+        # 更新所有結算項目狀態
+        for item in settlement.items:
+            item.status = 'approved'
+            
+        db.session.commit()
+        return settlement
+    
+    @staticmethod
+    def reject_settlement(settlement_id, admin_id, reason):
+        """
+        拒絕結算單
+        """
+        settlement = Settlement.query.get(settlement_id)
+        if not settlement:
+            raise ValueError("結算單不存在")
+            
+        admin = User.query.get(admin_id)
+        if not admin or admin.role != 'admin':
+            raise ValueError("只有管理員可以審核結算單")
+            
+        if settlement.status != 'pending':
+            raise ValueError("此結算單已被處理")
+            
+        settlement.status = 'rejected'
+        settlement.rejected_at = datetime.utcnow()
+        settlement.rejected_by = admin_id
+        settlement.reject_reason = reason
+        
+        # 更新所有結算項目狀態
+        for item in settlement.items:
+            item.status = 'rejected'
+            
+        db.session.commit()
+        return settlement
+    
+    @staticmethod
+    def check_expired_settlements():
+        """
+        檢查已過期的結算單
+        - 超過30天未處理的pending結算單
+        - 超過90天的已完成結算單
+        """
+        # 檢查未處理的結算單
+        pending_expire_date = datetime.utcnow() - timedelta(days=30)
+        expired_pending = Settlement.query.filter(
+            Settlement.status == 'pending',
+            Settlement.created_at < pending_expire_date
+        ).all()
+        
+        # 自動拒絕過期的未處理結算單
+        for settlement in expired_pending:
+            settlement.status = 'rejected'
+            settlement.rejected_at = datetime.utcnow()
+            settlement.reject_reason = '系統自動拒絕：超過30天未處理'
+            for item in settlement.items:
+                item.status = 'rejected'
+                
+        # 檢查已完成的結算單
+        complete_expire_date = datetime.utcnow() - timedelta(days=90)
+        expired_complete = Settlement.query.filter(
+            Settlement.status.in_(['approved', 'rejected']),
+            Settlement.created_at < complete_expire_date
+        ).all()
+        
+        # 標記過期的已完成結算單
+        for settlement in expired_complete:
+            settlement.is_expired = True
+            
+        db.session.commit()

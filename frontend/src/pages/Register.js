@@ -9,7 +9,8 @@ const Register = () => {
     password: '',
     confirmPassword: '',
     phone: '',
-    line_id: ''
+    line_id: '',
+    referral_id: ''  // 新增介紹人 ID
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -40,7 +41,8 @@ const Register = () => {
           email: formData.email,
           password: formData.password,
           phone: formData.phone,
-          line_id: formData.line_id
+          line_id: formData.line_id,
+          referral_id: formData.referral_id  // 添加介紹人 ID
         }),
       });
 
@@ -124,6 +126,16 @@ const Register = () => {
             value={formData.line_id}
             onChange={handleChange}
             maxLength={50}
+          />
+        </div>
+        <div className="form-group">
+          <label>介紹人 ID：</label>
+          <input
+            type="text"
+            name="referral_id"
+            value={formData.referral_id}
+            onChange={handleChange}
+            placeholder="選填"
           />
         </div>
         {error && <p className="error">{error}</p>}

@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 load_dotenv()
 
@@ -63,6 +64,26 @@ class Config:
     RATE_LIMIT = os.getenv('RATE_LIMIT', '100/hour')
     BACKUP_DIR = os.getenv('BACKUP_DIR', 'backups')
     BACKUP_INTERVAL_HOURS = int(os.getenv('BACKUP_INTERVAL_HOURS', 24))
+
+    # Celery排程設定
+    CELERYBEAT_SCHEDULE = {
+        'generate-daily-settlements': {
+            'task': 'tasks.settlement_tasks.generate_daily_settlements',
+            'schedule': crontab(hour=1, minute=0)  # 每天凌晨1點執行
+        },
+        'check-expired-settlements': {
+            'task': 'tasks.settlement_tasks.check_expired_settlements',
+            'schedule': crontab(hour='*/2', minute=0)  # 每2小時檢查一次
+        },
+        'auto-approve-settlements': {
+            'task': 'tasks.settlement_tasks.auto_approve_settlements',
+            'schedule': crontab(hour=2, minute=0)  # 每天凌晨2點執行
+        },
+        'cleanup-old-settlements': {
+            'task': 'tasks.settlement_tasks.cleanup_old_settlements',
+            'schedule': crontab(hour=3, minute=0, day_of_week=1)  # 每週一凌晨3點執行
+        }
+    }
 
 class DevelopmentConfig(Config):
     DEBUG = True

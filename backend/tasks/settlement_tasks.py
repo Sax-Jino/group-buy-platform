@@ -6,6 +6,8 @@ from models.settlement import UnsettledOrder
 from models.order import Order
 from extensions import db
 from config import Config
+from celery import shared_task
+from models.settlement import Settlement
 
 def setup_settlement_tasks(app):
     scheduler = BackgroundScheduler()
@@ -186,3 +188,78 @@ def setup_settlement_tasks(app):
         scheduler.shutdown()
     
     app.teardown_appcontext(shutdown_scheduler)
+
+@shared_task
+def generate_daily_settlements():
+    """每日生成結算批次"""
+    try:
+        # 獲取昨天的訂單
+        yesterday = datetime.utcnow() - timedelta(days=1)
+        orders = Order.query.filter(
+            Order.status == 'completed',
+            Order.completed_at >= yesterday.replace(hour=0, minute=0, second=0),
+            Order.completed_at < yesterday.replace(hour=23, minute=59, second=59),
+            Order.is_settled == False
+        ).all()
+        
+        if orders:
+            SettlementService.create_settlement(orders)
+            
+        # 標記訂單為已結算
+        for order in orders:
+            order.is_settled = True
+        db.session.commit()
+    except Exception as e:
+        print(f"生成每日結算時發生錯誤: {str(e)}")
+
+@shared_task
+def check_expired_settlements():
+    """檢查過期結算單"""
+    try:
+        SettlementService.check_expired_settlements()
+    except Exception as e:
+        print(f"檢查過期結算單時發生錯誤: {str(e)}")
+
+@shared_task
+def auto_approve_settlements():
+    """自動審核未爭議的結算單"""
+    try:
+        # 獲取7天前且未有爭議的待處理結算單
+        approval_date = datetime.utcnow() - timedelta(days=7)
+        settlements = Settlement.query.filter(
+            Settlement.status == 'pending',
+            Settlement.created_at <= approval_date,
+            Settlement.has_dispute == False
+        ).all()
+        
+        # 自動審核通過
+        for settlement in settlements:
+            SettlementService.approve_settlement(
+                settlement.id,
+                admin_id=None  # 系統自動審核
+            )
+    except Exception as e:
+        print(f"自動審核結算單時發生錯誤: {str(e)}")
+
+@shared_task
+def cleanup_old_settlements():
+    """清理過舊的結算記錄"""
+    try:
+        # 清理180天前的已完成結算記錄
+        cleanup_date = datetime.utcnow() - timedelta(days=180)
+        old_settlements = Settlement.query.filter(
+            Settlement.status.in_(['approved', 'rejected']),
+            Settlement.created_at < cleanup_date
+        ).all()
+        
+        # 將資料轉移到歷史資料表（如果需要）
+        for settlement in old_settlements:
+            # TODO: 實作歷史資料轉移邏輯
+            pass
+            
+        # 標記為已封存
+        for settlement in old_settlements:
+            settlement.is_archived = True
+        db.session.commit()
+    except Exception as e:
+        print(f"清理舊結算記錄時發生錯誤: {str(e)}")

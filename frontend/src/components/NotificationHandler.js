@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { Badge, notification, Drawer, List, Button } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+import { Badge, notification, Drawer, List, Button, message } from 'antd';
 import { BellOutlined } from '@ant-design/icons';
 import { socket } from '../services/api';
 import { setNotification } from '../store/actions/collaborationActions';
+import { useNavigate } from 'react-router-dom';
 import '../styles/NotificationHandler.css';
 
 const NotificationHandler = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { userRole } = useSelector(state => state.auth);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);
@@ -107,19 +110,56 @@ const NotificationHandler = () => {
         }
     };
 
+    const handleNotification = (notification) => {
+        // 處理報表相關通知
+        switch (notification.data?.type) {
+            case 'financial_report':
+            case 'settlement_report':
+                if (userRole === 'admin') {
+                    notification.onClick = () => {
+                        navigate(`/audit/reports/${notification.data.report_id}`);
+                    };
+                }
+                break;
+                
+            case 'financial_report_error':
+            case 'settlement_report_error':
+                if (userRole === 'admin') {
+                    message.error(notification.message);
+                }
+                break;
+                
+            case 'settlement_anomaly':
+                if (userRole === 'admin') {
+                    notification.onClick = () => {
+                        navigate(`/audit/reports/${notification.data.report_id}`);
+                    };
+                    // 使用較高的通知等級
+                    notification.type = 'warning';
+                    notification.duration = 0; // 不自動關閉
+                }
+                break;
+                
+            default:
+                break;
+        }
+
+        notification.info({
+            message: '新通知',
+            description: notification.message,
+            placement: 'topRight',
+        });
+        
+        setNotifications(prev => [notification, ...prev]);
+        setUnreadCount(prev => prev + 1);
+        dispatch(setNotification(notification));
+    };
+
     useEffect(() => {
         fetchNotifications();
 
         socket.on('frontend_notification', (data) => {
-            notification.info({
-                message: '新通知',
-                description: data.message,
-                placement: 'topRight',
-            });
-            
-            setNotifications(prev => [data, ...prev]);
-            setUnreadCount(prev => prev + 1);
-            dispatch(setNotification(data));
+            handleNotification(data);
         });
 
         return () => {
