@@ -38,5 +38,6 @@ class User(db.Model):
     # 關聯
     orders = db.relationship('Order', backref='user', lazy='dynamic', 
                            foreign_keys='Order.user_id')
-    products = db.relationship('Product', backref='supplier', lazy='dynamic')
+    products = db.relationship('Product', backref='supplier', lazy='dynamic',
+                             foreign_keys='Product.supplier_id')
     downlines = db.relationship('User', backref=db.backref('parent', remote_side=[id]), lazy='dynamic')
