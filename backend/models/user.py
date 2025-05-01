@@ -40,4 +40,7 @@ class User(db.Model):
                            foreign_keys='Order.user_id')
     products = db.relationship('Product', backref='supplier', lazy='dynamic',
                              foreign_keys='Product.supplier_id')
-    downlines = db.relationship('User', backref=db.backref('parent', remote_side=[id]), lazy='dynamic')
+    downlines = db.relationship('User', 
+                              backref=db.backref('parent', remote_side=[id]),
+                              lazy='dynamic',
+                              foreign_keys='User.parent_id')
