@@ -18,6 +18,7 @@ class ProductReview(db.Model):
 
 class ProductQA(db.Model):
     __tablename__ = 'product_qa'
+    
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
@@ -28,6 +29,6 @@ class ProductQA(db.Model):
     answered_at = db.Column(db.DateTime)
 
     # 關聯
-    product = db.relationship('Product', backref='questions')
-    user = db.relationship('User', backref='questions')
-    answerer = db.relationship('User', foreign_keys=[answered_by], backref='answers')
+    product = db.relationship('Product', backref=db.backref('qa_items', lazy='dynamic'))
+    questioner = db.relationship('User', foreign_keys=[user_id], backref=db.backref('asked_questions', lazy='dynamic'))
+    answerer = db.relationship('User', foreign_keys=[answered_by], backref=db.backref('answered_questions', lazy='dynamic'))
