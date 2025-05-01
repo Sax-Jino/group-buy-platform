@@ -1,5 +1,6 @@
 from extensions import db
 from datetime import datetime
+from .product_review import ProductReview, ProductQA
 
 class Product(db.Model):
     __tablename__ = 'products'
