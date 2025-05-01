@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import SearchBar from './SearchBar';
+import { Menu, Dropdown, Badge } from 'antd';
+import { UserOutlined, BellOutlined, DollarOutlined } from '@ant-design/icons';
 import '../styles/Header.css';
 
 const Header = () => {
@@ -15,6 +17,29 @@ const Header = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
+
+  const userMenu = (
+    <Menu>
+      <Menu.Item key="profile">
+        <Link to="/profile">個人資料</Link>
+      </Menu.Item>
+      {/* 根據用戶角色顯示結算管理 */}
+      {(user?.role === 'admin' || user?.role === 'supplier' || user?.group_mom_level > 0) && (
+        <Menu.Item key="settlements">
+          <Link to="/settlements">
+            <DollarOutlined /> 結算管理
+          </Link>
+        </Menu.Item>
+      )}
+      <Menu.Item key="orders">
+        <Link to="/orders">我的訂單</Link>
+      </Menu.Item>
+      <Menu.Divider />
+      <Menu.Item key="logout" onClick={handleLogout}>
+        登出
+      </Menu.Item>
+    </Menu>
+  );
 
   return (
     <>
@@ -37,19 +62,11 @@ const Header = () => {
               )}
             </Link>
             {isAuthenticated ? (
-              <div className="user-menu-container">
+              <Dropdown overlay={userMenu} trigger={['click']}>
                 <span className="user" onClick={() => setShowUserMenu(!showUserMenu)}>
                   個人中心 ▼
                 </span>
-                {showUserMenu && (
-                  <div className="user-dropdown">
-                    <Link to="/profile">個人資料</Link>
-                    <Link to="/orders">我的訂單</Link>
-                    <Link to="/favorites">收藏商品</Link>
-                    <button onClick={handleLogout}>登出</button>
-                  </div>
-                )}
-              </div>
+              </Dropdown>
             ) : (
               <Link to="/login" className="login-btn">登入</Link>
             )}

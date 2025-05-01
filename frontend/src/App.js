@@ -16,7 +16,10 @@ import CheckoutPage from './pages/CheckoutPage';
 import PaymentPage from './pages/PaymentPage';
 import CartPage from './pages/CartPage';
 import Register from './pages/Register';
+import SettlementManagementPage from './pages/SettlementManagementPage';
 import NotificationHandler from './components/NotificationHandler';
+import AuditManagementPage from './pages/AuditManagementPage';
+import AuditReportDetailPage from './pages/AuditReportDetailPage';
 import './styles/global.css';
 
 function App() {
@@ -40,6 +43,30 @@ function App() {
                             <Route path="/checkout" element={<CheckoutPage />} />
                             <Route path="/orders/:orderId/payment" element={<PaymentPage />} />
                             <Route path="/cart" element={<CartPage />} />
+                            <Route 
+                                path="/settlements" 
+                                element={
+                                    <PrivateRoute>
+                                        <SettlementManagementPage />
+                                    </PrivateRoute>
+                                } 
+                            />
+                            <Route 
+                                path="/audit" 
+                                element={
+                                    <PrivateRoute requiredRole="admin">
+                                        <AuditManagementPage />
+                                    </PrivateRoute>
+                                } 
+                            />
+                            <Route 
+                                path="/audit/reports/:reportId" 
+                                element={
+                                    <PrivateRoute requiredRole="admin">
+                                        <AuditReportDetailPage />
+                                    </PrivateRoute>
+                                } 
+                            />
                         </Routes>
                     </main>
                     <Footer />

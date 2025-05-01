@@ -1,56 +1,194 @@
-from extensions import db
-from models.settlement import Settlement
+from datetime import datetime, timedelta
+from sqlalchemy import and_, or_
 from models.order import Order
+from models.settlement import Settlement, UnsettledOrder, SettlementStatement
 from models.user import User
+from extensions import db
 from config import Config
-from datetime import datetime
 
 class SettlementService:
-    def generate_settlement(self, user_id, data):
-        required_fields = ['period_start', 'period_end']
-        if not all(field in data for field in required_fields):
-            raise ValueError("Missing required fields")
-        
-        user = User.query.get(user_id)
-        if not user or user.role != 'supplier':
-            raise ValueError("Only suppliers can generate settlements")
-        
-        period_start = datetime.fromisoformat(data['period_start'])
-        period_end = datetime.fromisoformat(data['period_end'])
-        orders = Order.query.filter(
-            Order.supplier_id == user_id,
-            Order.status == 'completed',
-            Order.updated_at.between(period_start, period_end)
-        ).all()
-        
-        total_sales = sum(order.total_amount for order in orders)
-        platform_fee = total_sales * Config.PLATFORM_FEE_RATE
-        supplier_amount = total_sales - platform_fee
-        
-        settlement = Settlement(
-            supplier_id=user_id,
-            period_start=period_start,
-            period_end=period_end,
-            total_sales=total_sales,
-            platform_fee=platform_fee,
-            supplier_amount=supplier_amount
+    @staticmethod
+    def create_settlement_period():
+        """建立結算期別代號"""
+        today = datetime.now()
+        if today.day <= 15:
+            return f"{today.year}{today.month:02d}a"
+        return f"{today.year}{today.month:02d}b"
+
+    @staticmethod
+    def process_paid_order(order):
+        """處理已付款訂單的金流計算"""
+        if not order.calculate_profits():
+            return False
+            
+        # 建立未結算訂單記錄
+        unsettled = UnsettledOrder(
+            order_id=order.id,
+            expected_settlement_date=datetime.now() + timedelta(days=Config.SIGNOFF_DEADLINE_DAYS),
+            max_retention_date=datetime.now() + timedelta(days=60),
+            status='awaiting_shipment',
+            alert_level='high' if order.total_price > 5000 else 'normal'
         )
-        db.session.add(settlement)
+        db.session.add(unsettled)
         db.session.commit()
-        return settlement
+        return True
 
-    def get_settlements_by_supplier(self, supplier_id):
-        return Settlement.query.filter_by(supplier_id=supplier_id).order_by(Settlement.created_at.desc()).all()
-
-    def confirm_settlement(self, settlement_id, user_id):
-        settlement = Settlement.query.get(settlement_id)
-        if not settlement:
-            raise ValueError("Settlement not found")
-        if settlement.supplier_id != user_id:
-            raise ValueError("Only the supplier can confirm this settlement")
-        if settlement.status != 'pending':
-            raise ValueError("Settlement is not pending")
+    @staticmethod
+    def generate_settlement_batch():
+        """生成結算批次"""
+        current_period = SettlementService.create_settlement_period()
         
-        settlement.status = 'confirmed'
+        # 找出所有已完成且未結算的訂單
+        orders = Order.query.filter(
+            and_(
+                Order.status == 'completed',
+                Order.settled_at.is_(None),
+                Order.calculation_verified == True
+            )
+        ).all()
+
+        # 按用戶和類型分組
+        settlements = {}
+        for order in orders:
+            # 供應商結算
+            supplier_key = (order.product.supplier_id, 'supplier')
+            if supplier_key not in settlements:
+                settlements[supplier_key] = []
+            settlements[supplier_key].append(order)
+            
+            # 團媽結算
+            if order.big_mom_id:
+                big_mom_key = (order.big_mom_id, 'mom')
+                if big_mom_key not in settlements:
+                    settlements[big_mom_key] = []
+                settlements[big_mom_key].append(order)
+            
+            if order.middle_mom_id:
+                middle_mom_key = (order.middle_mom_id, 'mom')
+                if middle_mom_key not in settlements:
+                    settlements[middle_mom_key] = []
+                settlements[middle_mom_key].append(order)
+                
+            if order.small_mom_id:
+                small_mom_key = (order.small_mom_id, 'mom')
+                if small_mom_key not in settlements:
+                    settlements[small_mom_key] = []
+                settlements[small_mom_key].append(order)
+
+        # 建立結算記錄
+        for (user_id, settlement_type), orders in settlements.items():
+            total_amount = sum(
+                order.supplier_amount if settlement_type == 'supplier'
+                else (order.big_mom_amount if order.big_mom_id == user_id
+                else order.middle_mom_amount if order.middle_mom_id == user_id
+                else order.small_mom_amount)
+                for order in orders
+            )
+            
+            settlement = Settlement(
+                period=current_period,
+                settlement_type=settlement_type,
+                user_id=user_id,
+                total_amount=total_amount,
+                net_amount=total_amount,
+                order_count=len(orders),
+                order_details=[{
+                    'order_id': order.id,
+                    'amount': order.supplier_amount if settlement_type == 'supplier'
+                    else (order.big_mom_amount if order.big_mom_id == user_id
+                    else order.middle_mom_amount if order.middle_mom_id == user_id
+                    else order.small_mom_amount)
+                } for order in orders]
+            )
+            
+            db.session.add(settlement)
+            
+            # 建立對帳單
+            statement = SettlementStatement(
+                settlement_id=settlement.id,
+                statement_type=settlement_type,
+                period=current_period,
+                total_orders=len(orders),
+                total_amount=total_amount,
+                dispute_deadline=datetime.now() + timedelta(days=3),
+                commission_details={
+                    'rate': Config.PLATFORM_FEE_RATE,
+                    'amount': sum(order.platform_fee for order in orders)
+                },
+                tax_details={
+                    'amount': sum(order.tax_amount for order in orders)
+                },
+                shipping_details=[{
+                    'order_id': order.id,
+                    'tracking_number': order.tracking_number,
+                    'shipped_at': order.shipped_at.isoformat() if order.shipped_at else None
+                } for order in orders],
+                return_deductions=[{
+                    'order_id': order.id,
+                    'amount': order.total_price,
+                    'status': order.return_status
+                } for order in orders if order.return_status]
+            )
+            
+            db.session.add(statement)
+        
         db.session.commit()
-        return settlement
+
+    @staticmethod
+    def confirm_statement(statement_id, user_id):
+        """確認對帳單"""
+        statement = SettlementStatement.query.get(statement_id)
+        if not statement or statement.settlement.user_id != user_id:
+            return False
+            
+        if datetime.now() > statement.dispute_deadline:
+            return False
+            
+        statement.is_finalized = True
+        statement.settlement.is_confirmed = True
+        statement.settlement.confirmed_at = datetime.now()
+        db.session.commit()
+        return True
+
+    @staticmethod
+    def process_payment(settlement_id):
+        """處理撥款"""
+        settlement = Settlement.query.get(settlement_id)
+        if not settlement or not settlement.is_confirmed:
+            return False
+            
+        # 這裡應該調用實際的支付系統API
+        # 目前先模擬支付成功
+        settlement.status = 'paid'
+        settlement.paid_at = datetime.now()
+        
+        # 更新相關訂單的結算狀態
+        for order_detail in settlement.order_details:
+            order = Order.query.get(order_detail['order_id'])
+            if order:
+                order.settled_at = datetime.now()
+                
+        db.session.commit()
+        return True
+
+    @staticmethod
+    def get_platform_summary():
+        """獲取平台金流總覽"""
+        current_period = SettlementService.create_settlement_period()
+        
+        return {
+            'period': current_period,
+            'total_revenue': db.session.query(db.func.sum(Order.total_price))\
+                .filter(Order.status == 'completed').scalar() or 0,
+            'settled_amount': db.session.query(db.func.sum(Settlement.total_amount))\
+                .filter(Settlement.status == 'paid').scalar() or 0,
+            'unsettled_amount': db.session.query(db.func.sum(Order.total_price))\
+                .filter(and_(
+                    Order.status == 'completed',
+                    Order.settled_at.is_(None)
+                )).scalar() or 0,
+            'platform_profit': db.session.query(db.func.sum(Order.platform_profit))\
+                .filter(Order.status == 'completed').scalar() or 0,
+            'tax_amount': db.session.query(db.func.sum(Order.tax_amount))\
+                .filter(Order.status == 'completed').scalar() or 0
+        }
