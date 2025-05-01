@@ -28,7 +28,7 @@ class ProductQA(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     answered_at = db.Column(db.DateTime)
 
-    # 關聯
-    product = db.relationship('Product', backref=db.backref('qa_items', lazy='dynamic'))
+    # 關聯，移除了重複的 backref
+    product = db.relationship('Product')
     questioner = db.relationship('User', foreign_keys=[user_id], backref=db.backref('asked_questions', lazy='dynamic'))
     answerer = db.relationship('User', foreign_keys=[answered_by], backref=db.backref('answered_questions', lazy='dynamic'))
