@@ -19,17 +19,8 @@ def create_app():
     babel.init_app(app)
     
     # 註冊藍圖
-    from routes.user import bp as user_bp
-    from routes.product import bp as product_bp
-    from routes.order import bp as order_bp
-    from routes.settlement import bp as settlement_bp
-    from routes.audit import bp as audit_bp
-    
-    app.register_blueprint(user_bp, url_prefix='/api/users')
-    app.register_blueprint(product_bp, url_prefix='/api/products')
-    app.register_blueprint(order_bp, url_prefix='/api/orders')
-    app.register_blueprint(settlement_bp, url_prefix='/api/settlements')
-    app.register_blueprint(audit_bp, url_prefix='/api/audit')
+    from routes import register_blueprints
+    register_blueprints(app)
     
     # 設置定時任務
     setup_settlement_tasks(app)

@@ -9,6 +9,7 @@ from .refund_routes import bp as refund_bp
 from .recipient_routes import bp as recipient_bp
 from .payment_routes import bp as payment_bp
 from .supplier_assistant import bp as supplier_assistant_bp
+from .user_routes import bp as user_bp
 
 def register_blueprints(app):
     """註冊所有的路由藍圖"""
@@ -17,6 +18,7 @@ def register_blueprints(app):
     
     # 註冊各模組路由
     app.register_blueprint(auth_bp, url_prefix=f'{PREFIX}/auth')
+    app.register_blueprint(user_bp, url_prefix=f'{PREFIX}/users')
     app.register_blueprint(order_bp, url_prefix=f'{PREFIX}/orders')
     app.register_blueprint(product_bp, url_prefix=f'{PREFIX}/products')
     app.register_blueprint(settlement_bp, url_prefix=f'{PREFIX}/settlements')

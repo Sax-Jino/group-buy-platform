@@ -30,6 +30,51 @@ def create_order():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
+@bp.route('/user', methods=['GET'])
+@jwt_required()
+def get_user_orders():
+    user_id = get_jwt_identity()
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    status = request.args.get('status')
+    
+    orders = order_service.get_orders_by_user(user_id, page, per_page, status)
+    return jsonify({
+        "orders": [{
+            "id": o.id,
+            "product_id": o.product_id,
+            "quantity": o.quantity,
+            "total_price": o.total_price,
+            "status": o.status,
+            "payment_deadline": o.payment_deadline.isoformat() if o.payment_deadline else None,
+            "remittance_account_last5": o.remittance_account_last5,
+            "created_at": o.created_at.isoformat()
+        } for o in orders.items],
+        "total": orders.total,
+        "pages": orders.pages,
+        "current_page": orders.page
+    }), 200
+
+@bp.route('/<int:order_id>', methods=['GET'])
+@jwt_required()
+def get_order(order_id):
+    user_id = get_jwt_identity()
+    try:
+        order = order_service.get_order_by_id(order_id, user_id)
+        return jsonify({
+            "id": order.id,
+            "product_id": order.product_id,
+            "quantity": order.quantity,
+            "total_price": order.total_price,
+            "status": order.status,
+            "payment_deadline": order.payment_deadline.isoformat() if order.payment_deadline else None,
+            "remittance_account_last5": order.remittance_account_last5,
+            "shipping_info": order.shipping_info,
+            "created_at": order.created_at.isoformat()
+        }), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+
 @bp.route('/<int:order_id>/submit_remittance', methods=['POST'])
 @jwt_required()
 @csrf.exempt
@@ -62,22 +107,6 @@ def verify_payment(order_id):
         }), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 403
-
-@bp.route('/user', methods=['GET'])
-@jwt_required()
-def get_user_orders():
-    user_id = get_jwt_identity()
-    orders = order_service.get_orders_by_user(user_id)
-    return jsonify([{
-        "id": o.id,
-        "product_id": o.product_id,
-        "quantity": o.quantity,
-        "total_price": o.total_price,
-        "status": o.status,
-        "payment_deadline": o.payment_deadline.isoformat() if o.payment_deadline else None,
-        "remittance_account_last5": o.remittance_account_last5,
-        "created_at": o.created_at.isoformat()
-    } for o in orders]), 200
 
 @bp.route('/<int:order_id>', methods=['PUT'])
 @jwt_required()

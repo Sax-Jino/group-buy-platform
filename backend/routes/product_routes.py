@@ -4,7 +4,6 @@ from services.product_service import ProductService
 from extensions import csrf
 
 bp = Blueprint('product_routes', __name__)
-
 product_service = ProductService()
 
 @bp.route('', methods=['POST'])
@@ -21,43 +20,35 @@ def create_product():
 
 @bp.route('', methods=['GET'])
 def get_products():
-    products = product_service.get_all_products()
-    return jsonify([{
-        "id": p.id,
-        "name": p.name,
-        "description": p.description,
-        "price": p.price,
-        "market_price": p.market_price,
-        "stock": p.stock,
-        "supplier_id": p.supplier_id,
-        "category": p.category,
-        "image_url": p.image_url,
-        "created_at": p.created_at.isoformat()
-    } for p in products]), 200
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    category = request.args.get('category')
+    sort_by = request.args.get('sort', 'latest')
+    
+    products = product_service.get_all_products(page, per_page, category, sort_by)
+    return jsonify({
+        "products": [{
+            "id": p.id,
+            "name": p.name,
+            "description": p.description,
+            "price": p.price,
+            "market_price": p.market_price,
+            "stock": p.stock,
+            "supplier_id": p.supplier_id,
+            "category": p.category,
+            "image_url": p.image_url,
+            "created_at": p.created_at.isoformat()
+        } for p in products.items],
+        "total": products.total,
+        "pages": products.pages,
+        "current_page": products.page
+    }), 200
 
 @bp.route('/hot', methods=['GET'])
 def get_hot_products():
     """獲取熱賣商品"""
     limit = request.args.get('limit', 5, type=int)
     products = product_service.get_hot_products(limit)
-    return jsonify([{
-        "id": p.id,
-        "name": p.name,
-        "description": p.description,
-        "price": p.price,
-        "market_price": p.market_price,
-        "stock": p.stock,
-        "supplier_id": p.supplier_id,
-        "category": p.category,
-        "image_url": p.image_url,
-        "created_at": p.created_at.isoformat()
-    } for p in products]), 200
-
-@bp.route('/latest', methods=['GET'])
-def get_latest_products():
-    """獲取最新商品"""
-    limit = request.args.get('limit', 10, type=int)
-    products = product_service.get_latest_products(limit)
     return jsonify([{
         "id": p.id,
         "name": p.name,
@@ -86,7 +77,7 @@ def get_products_by_category(category):
     )
     
     return jsonify({
-        'products': [{
+        "products": [{
             "id": p.id,
             "name": p.name,
             "description": p.description,
@@ -98,9 +89,9 @@ def get_products_by_category(category):
             "image_url": p.image_url,
             "created_at": p.created_at.isoformat()
         } for p in paginated_products.items],
-        'total': paginated_products.total,
-        'pages': paginated_products.pages,
-        'current_page': paginated_products.page
+        "total": paginated_products.total,
+        "pages": paginated_products.pages,
+        "current_page": paginated_products.page
     }), 200
 
 @bp.route('/<int:product_id>', methods=['GET'])
@@ -114,9 +105,22 @@ def get_product(product_id):
     related_products = product_service.get_related_products(product_id)
     
     return jsonify({
-        **product,
-        "created_at": product["created_at"].isoformat(),
-        "related_products": related_products
+        "id": product.id,
+        "name": product.name,
+        "description": product.description,
+        "price": product.price,
+        "market_price": product.market_price,
+        "stock": product.stock,
+        "supplier_id": product.supplier_id,
+        "category": product.category,
+        "image_url": product.image_url,
+        "created_at": product.created_at.isoformat(),
+        "related_products": [{
+            "id": p.id,
+            "name": p.name,
+            "price": p.price,
+            "image_url": p.image_url
+        } for p in related_products]
     }), 200
 
 @bp.route('/<int:product_id>', methods=['PUT'])
@@ -130,22 +134,6 @@ def update_product(product_id):
         return jsonify({"message": "Product updated successfully", "product_id": product.id}), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
-
-@bp.route('/search/suggestions', methods=['GET'])
-def get_search_suggestions():
-    """獲取搜尋建議"""
-    query = request.args.get('q', '').strip()
-    limit = request.args.get('limit', 5, type=int)
-    
-    suggestions = product_service.search_suggestions(query, limit)
-    return jsonify({
-        'suggestions': [{
-            'id': p.id,
-            'name': p.name,
-            'price': p.price,
-            'image_url': p.image_url
-        } for p in suggestions]
-    }), 200
 
 @bp.route('/search', methods=['GET'])
 def search_products():
@@ -169,28 +157,29 @@ def search_products():
         per_page=per_page
     )
     
-    if not result:
-        return jsonify({
-            'message': '沒有找到相關商品',
-            'products': [],
-            'total': 0,
-            'pages': 0,
-            'current_page': page
-        }), 200
-        
     return jsonify({
-        'products': [{
-            'id': p.id,
-            'name': p.name,
-            'description': p.description,
-            'price': p.price,
-            'market_price': p.market_price,
-            'stock': p.stock,
-            'category': p.category,
-            'image_url': p.image_url,
-            'created_at': p.created_at.isoformat()
+        "products": [{
+            "id": p.id,
+            "name": p.name,
+            "description": p.description,
+            "price": p.price,
+            "market_price": p.market_price,
+            "stock": p.stock,
+            "category": p.category,
+            "image_url": p.image_url,
+            "created_at": p.created_at.isoformat()
         } for p in result.items],
-        'total': result.total,
-        'pages': result.pages,
-        'current_page': result.page
+        "total": result.total,
+        "pages": result.pages,
+        "current_page": result.page
     }), 200
+
+@bp.route('/search/suggestions', methods=['GET'])
+def get_search_suggestions():
+    """獲取搜尋建議"""
+    query = request.args.get('q', '').strip()
+    if not query:
+        return jsonify([]), 200
+    
+    suggestions = product_service.get_search_suggestions(query)
+    return jsonify(suggestions), 200
