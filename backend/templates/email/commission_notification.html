@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>新分潤通知</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #1DB446;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 0 0 5px 5px;
+        }
+        .amount {
+            font-size: 24px;
+            color: #1DB446;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .info-table td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        .info-table td:first-child {
+            font-weight: bold;
+            width: 120px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #1DB446;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .warning {
+            color: #ff4444;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>新分潤通知</h1>
+    </div>
+    <div class="content">
+        <p>親愛的 {{ user.name }} 您好：</p>
+        <p>您有一筆新的分潤待確認：</p>
+        
+        <div class="amount">
+            NT$ {{ '{:,.2f}'.format(notification.metadata.amount) }}
+        </div>
+        
+        <table class="info-table">
+            <tr>
+                <td>訂單編號：</td>
+                <td>{{ notification.metadata.order_id }}</td>
+            </tr>
+            <tr>
+                <td>到期日期：</td>
+                <td>{{ notification.metadata.expires_at }}</td>
+            </tr>
+            <tr>
+                <td>分潤類型：</td>
+                <td>{{ notification.metadata.commission_type }}</td>
+            </tr>
+        </table>
+
+        <p style="text-align: center;">
+            <a href="{{ confirmation_url }}" class="button">立即確認分潤</a>
+        </p>
+
+        <p class="warning">
+            注意：請在到期日前完成確認，逾期未確認的分潤將自動失效。
+        </p>
+    </div>
+    <div class="footer">
+        <p>此為系統自動發送的郵件，請勿直接回覆</p>
+        <p>如有任何問題，請聯繫客服人員</p>
+    </div>
+</body>
+</html>

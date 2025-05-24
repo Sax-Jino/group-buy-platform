@@ -1,0 +1,58 @@
+{
+  "type": "bubble",
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "新分潤通知",
+        "weight": "bold",
+        "size": "xl",
+        "color": "#1DB446"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "margin": "lg",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "text",
+            "text": "訂單編號：{{ order_id }}",
+            "size": "sm",
+            "color": "#555555"
+          },
+          {
+            "type": "text",
+            "text": "分潤金額：NT$ {{ amount }}",
+            "size": "sm",
+            "color": "#111111",
+            "weight": "bold"
+          },
+          {
+            "type": "text",
+            "text": "到期日期：{{ expires_at }}",
+            "size": "sm",
+            "color": "#555555"
+          }
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "button",
+        "action": {
+          "type": "uri",
+          "label": "確認分潤",
+          "uri": "{{ confirmation_url }}"
+        },
+        "style": "primary"
+      }
+    ]
+  }
+}

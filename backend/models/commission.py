@@ -1,5 +1,6 @@
 from extensions import db
 from datetime import datetime
+from sqlalchemy import Index
 
 class CommissionRecord(db.Model):
     __tablename__ = 'commission_records'
@@ -15,6 +16,14 @@ class CommissionRecord(db.Model):
     approved_at = db.Column(db.DateTime)
     paid_at = db.Column(db.DateTime)
     
+    # 添加索引
+    __table_args__ = (
+        Index('idx_commission_user_status', 'user_id', 'status'),
+        Index('idx_commission_order', 'order_id'),
+        Index('idx_commission_expires', 'expires_at', 'status'),
+        Index('idx_commission_created', 'created_at'),
+    )
+
     def to_dict(self):
         return {
             'id': self.id,

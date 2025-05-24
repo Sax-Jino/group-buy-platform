@@ -4,6 +4,10 @@ from models.group_mom_level import GroupMomLevel
 from models.user import User
 from models.payment import Payment
 from models.group_mom_application import GroupMomApplication
+from models.order import Order
+from models.downline_stats import DownlineStats
+from sqlalchemy import func
+from decimal import Decimal
 
 class GroupMomService:
     @staticmethod
@@ -217,3 +221,139 @@ class GroupMomService:
         
         db.session.commit()
         return expired_users
+
+    @staticmethod
+    def check_and_process_level_upgrade(user_id: str) -> dict:
+        """
+        檢查並處理團媽等級自動升級
+        返回升級結果
+        """
+        user = User.query.get(user_id)
+        if not user or user.role != 'member':
+            return {'success': False, 'message': '無效的用戶'}
+
+        # 獲取當前等級
+        current_level = user.group_mom_level or 0
+        if current_level >= 3:  # 已是最高等級
+            return {'success': False, 'message': '已是最高等級'}
+
+        # 檢查會費狀態
+        if not user.is_group_mom_fee_valid():
+            return {'success': False, 'message': '會費已過期'}
+
+        # 獲取下線統計
+        downline_stats = (
+            db.session.query(
+                func.count(DownlineStats.id).label('total_count'),
+                func.sum(DownlineStats.total_spent).label('total_spent')
+            )
+            .filter(
+                DownlineStats.mom_id == user_id,
+                DownlineStats.last_order_date >= datetime.utcnow() - timedelta(days=90)
+            )
+            .first()
+        )
+
+        # 檢查下線數量要求
+        required_downlines = 50 if current_level == 0 else 10
+        if not downline_stats or downline_stats.total_count < required_downlines:
+            return {
+                'success': False,
+                'message': f'下線數量不足，需要{required_downlines}個活躍下線',
+                'current': downline_stats.total_count if downline_stats else 0,
+                'required': required_downlines
+            }
+
+        # 對於中團媽和大團媽，檢查下線的等級要求
+        if current_level > 0:
+            qualified_downlines = (
+                db.session.query(func.count(User.id))
+                .join(DownlineStats, DownlineStats.downline_id == User.id)
+                .filter(
+                    DownlineStats.mom_id == user_id,
+                    User.group_mom_level == current_level,
+                    User.group_mom_fee_paid_until > datetime.utcnow()
+                )
+                .scalar()
+            )
+
+            if qualified_downlines < 10:
+                return {
+                    'success': False,
+                    'message': f'需要10個同等級團媽下線，目前只有{qualified_downlines}個',
+                    'current': qualified_downlines,
+                    'required': 10
+                }
+
+        # 檢查銷售業績要求
+        min_sales = {1: 50000, 2: 100000, 3: 200000}  # 各等級最低銷售額要求
+        if not downline_stats or downline_stats.total_spent < min_sales.get(current_level + 1, 0):
+            return {
+                'success': False,
+                'message': f'銷售額不足，需要{min_sales[current_level + 1]}元',
+                'current': downline_stats.total_spent if downline_stats else 0,
+                'required': min_sales[current_level + 1]
+            }
+
+        try:
+            # 符合所有條件，執行升級
+            user.group_mom_level = current_level + 1
+            user.level_updated_at = datetime.utcnow()
+            db.session.commit()
+
+            return {
+                'success': True,
+                'message': f'成功升級為{user.group_mom_level}級團媽',
+                'new_level': user.group_mom_level
+            }
+        except Exception as e:
+            db.session.rollback()
+            return {'success': False, 'message': str(e)}
+
+    @staticmethod
+    def calculate_commission(order_id: str) -> dict:
+        """
+        計算訂單的團媽分潤
+        """
+        order = Order.query.get(order_id)
+        if not order:
+            return {'success': False, 'message': '訂單不存在'}
+
+        try:
+            # 獲取分潤比例設定
+            commission_rates = {
+                1: Decimal('0.05'),  # 小團媽 5%
+                2: Decimal('0.10'),  # 中團媽 10%
+                3: Decimal('0.15')   # 大團媽 15%
+            }
+
+            # 計算可分配金額
+            distributable_amount = Decimal(str(order.total_price))
+            commission_records = []
+
+            # 檢查並計算各級團媽的分潤
+            for mom_type in ['big_mom_id', 'middle_mom_id', 'small_mom_id']:
+                mom_id = getattr(order, mom_type)
+                if not mom_id:
+                    continue
+
+                mom = User.query.get(mom_id)
+                if not mom or not mom.is_group_mom_fee_valid():
+                    continue
+
+                rate = commission_rates.get(mom.group_mom_level, Decimal('0'))
+                commission_amount = (distributable_amount * rate).quantize(Decimal('0.01'))
+
+                commission_records.append({
+                    'user_id': mom_id,
+                    'amount': float(commission_amount),
+                    'level': mom.group_mom_level
+                })
+
+            return {
+                'success': True,
+                'commission_records': commission_records,
+                'total_commission': sum(r['amount'] for r in commission_records)
+            }
+        except Exception as e:
+            return {'success': False, 'message': str(e)}

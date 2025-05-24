@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>團媽等級升級通知</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #1DB446;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 0 0 5px 5px;
+        }
+        .level-name {
+            font-size: 24px;
+            color: #1DB446;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .benefits-list {
+            margin: 20px 0;
+            padding-left: 20px;
+        }
+        .benefits-list li {
+            margin-bottom: 10px;
+        }
+        .commission-rate {
+            font-size: 18px;
+            color: #ff6b6b;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #1DB446;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .note {
+            font-size: 14px;
+            color: #666;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>團媽等級升級通知</h1>
+    </div>
+    <div class="content">
+        <p>親愛的 {{ user.name }} 您好：</p>
+        
+        <p>恭喜您！您已成功升級為：</p>
+        
+        <div class="level-name">
+            {{ new_level_name }}
+        </div>
+        
+        <p>您的新權益包括：</p>
+        <ul class="benefits-list">
+            {% for benefit in benefits %}
+            <li>{{ benefit }}</li>
+            {% endfor %}
+        </ul>
+
+        <div class="commission-rate">
+            分潤比例：{{ commission_rate }}%
+        </div>
+
+        <p style="text-align: center;">
+            <a href="{{ benefits_url }}" class="button">查看完整權益說明</a>
+        </p>
+
+        <div class="note">
+            <p>溫馨提醒：</p>
+            <ul>
+                <li>請定期查看系統通知以了解最新活動和優惠</li>
+                <li>若有任何問題，歡迎隨時聯繫客服人員</li>
+                <li>記得按時繳交會費以維持您的權益</li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer">
+        <p>此為系統自動發送的郵件，請勿直接回覆</p>
+        <p>如有任何問題，請聯繫客服人員</p>
+    </div>
+</body>
+</html>

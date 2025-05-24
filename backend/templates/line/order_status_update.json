@@ -1,0 +1,51 @@
+{
+  "type": "bubble",
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "訂單狀態更新",
+        "weight": "bold",
+        "size": "xl",
+        "color": "#1DB446"
+      },
+      {
+        "type": "text",
+        "text": "訂單編號：{{ order_id }}",
+        "size": "sm",
+        "color": "#555555",
+        "margin": "md"
+      },
+      {
+        "type": "text",
+        "text": "目前狀態：{{ order_status }}",
+        "size": "sm",
+        "color": "#111111",
+        "margin": "md"
+      },
+      {
+        "type": "text",
+        "text": "{{ message }}",
+        "wrap": true,
+        "margin": "md"
+      }
+    ]
+  },
+  "footer": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "button",
+        "action": {
+          "type": "uri",
+          "label": "查看訂單詳情",
+          "uri": "{{ order_url }}"
+        },
+        "style": "primary"
+      }
+    ]
+  }
+}

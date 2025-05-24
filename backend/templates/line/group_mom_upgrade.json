@@ -1,0 +1,65 @@
+{
+  "type": "bubble",
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "團媽等級升級通知",
+        "weight": "bold",
+        "size": "xl",
+        "color": "#1DB446"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "margin": "lg",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "text",
+            "text": "恭喜您升級為",
+            "size": "md"
+          },
+          {
+            "type": "text",
+            "text": "{{ new_level_name }}",
+            "size": "xl",
+            "weight": "bold",
+            "color": "#1DB446"
+          },
+          {
+            "type": "text",
+            "text": "新的權益與優惠：",
+            "size": "md",
+            "margin": "lg"
+          },
+          {
+            "type": "text",
+            "text": "{{ benefits }}",
+            "size": "sm",
+            "wrap": true,
+            "color": "#555555"
+          }
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "type": "box",
+    "layout": "vertical",
+    "spacing": "sm",
+    "contents": [
+      {
+        "type": "button",
+        "action": {
+          "type": "uri",
+          "label": "查看詳細權益",
+          "uri": "{{ benefits_url }}"
+        },
+        "style": "primary"
+      }
+    ]
+  }
+}
