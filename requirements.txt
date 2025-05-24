@@ -1,0 +1,5 @@
+aftership
+celery
+Flask-Limiter
+Flask-Migrate
+geopy

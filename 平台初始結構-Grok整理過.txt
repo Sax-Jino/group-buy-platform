@@ -1,0 +1,636 @@
+我已詳細研讀您提供的「團購平台初始結構.txt」檔案，涵蓋了從初始需求到最終更新的所有細節，包括角色權限、供應商管理、商品上下架、訂單與出貨、分潤機制、團媽規則、協作功能、金流透明性與財務合規等。以下是對整個團購平台資訊的全面整理，確保包含所有討論串的細節，並補充遺漏的內容（例如 SUPERADMIN、協作功能的實現細節）。整理將以結構化方式呈現，涵蓋功能、流程、資料模型、前後端設計、案例展示與改進建議，避免遺漏且與檔案內容一致。
+
+---
+
+## 團購平台完整設計（最終整合版）
+
+### 1. 平台概覽
+這是一個結合團購分潤機制與現代電商功能的平台，模擬主流電商（如 Momo、蝦皮）的購物體驗，同時支援多層級分潤與協作功能。平台支援多角色（會員、團媽、供應商、管理員、SUPERADMIN），提供以下核心功能：
+- **團購分潤**：支援大團媽（14-18%）、中團媽（28-32%）、小團媽（剩餘利潤），無上線時平台接收全額分潤。引入介紹人獎金（2%成本）。
+- **電商功能**：商品展示、購物車、結帳、線上支付（綠界）、退換貨、即時物流追蹤（AfterShip）、數據分析報表。
+- **協作功能**：支援提案、小組、投資、聊天、投票，促進團媽與供應商互動。
+- **行動端與行銷**：響應式網頁與原生App，商品頁面支援社交分享（Line、Facebook）。
+- **多語言與安全**：支援英文、繁體中文、簡體中文，使用 JWT 認證、CSRF 保護，提供站內、Email、Line通知。
+- **金流透明與合規**：每月兩次結算（1日/16日），生成對帳單與撥款清單，確保財務透明。
+
+---
+
+### 2. 角色與權限
+
+#### 2.1 會員 (Member)
+- **層級**：`role = 'member', group_mom_level = 0`
+- **權限**：
+  - 瀏覽商品（從上線團媽或平台接收），加入購物車、下單（選擇收貨地址，支援綠界支付或匯款後5碼）。
+  - 申請退換貨（7天內，提交銀行資訊）。
+  - 申請升級為小團媽（需50個下線並支付費用）。
+  - 查看訂單狀態、物流追蹤（AfterShip）、分潤模擬（ProfitCalculator.js）。
+  - 參與協作（投票、聊天、查看提案）。
+- **限制**：
+  - 無下放商品或分潤權限。
+  - 半年內取消訂單達3次，停權3個月。
+
+#### 2.2 小團媽 (Small Group Mom)
+- **層級**：`role = 'member', group_mom_level = 1`
+- **權限**：
+  - 從上線（中團媽、大團媽）或平台接收商品，下放給下線會員（`is_assigned = True`）。
+  - 獲取訂單分潤（100% - 大團媽 - 中團媽）。
+  - 兼任介紹人，獲2%成本獎金。
+  - 升級為中團媽（需10個同層級小團媽）。
+  - 創建商店頁面（ShopPage），分享至社交平台。
+  - 參與協作（發起提案、加入小組、投資、聊天、投票）。
+- **限制**：
+  - 需支付平台使用費（季費3000元、半年費5500元、年費10000元）。
+  - 費用逾期：資格暫停，逾期1個月下線轉移至上線或平台。
+
+#### 2.3 中團媽 (Medium Group Mom)
+- **層級**：`role = 'member', group_mom_level = 2`
+- **權限**：
+  - 從大團媽或平台接收商品，下放給小團媽或會員。
+  - 獲取訂單分潤（28-32%，預設28%，無小團媽則拿剩餘）。
+  - 兼任介紹人，獲2%成本獎金。
+  - 升級為大團媽（需10個同層級中團媽）。
+  - 自訂分潤比例（28-32%）。
+- **限制**：同小團媽費用與逾期規則。
+
+#### 2.4 大團媽 (Large Group Mom)
+- **層級**：`role = 'member', group_mom_level = 3`
+- **權限**：
+  - 直接從平台接收商品（`Product.status = 'active'`）。
+  - 下放商品給中團媽、小團媽或會員。
+  - 獲取訂單分潤（14-18%，預設15%，無中/小團媽則拿100%）。
+  - 兼任介紹人，獲2%成本獎金。
+  - 自訂分潤比例（14-18%）。
+- **限制**：同小團媽費用與逾期規則。
+
+#### 2.5 供應商 (Supplier)
+- **層級**：`role = 'supplier'`
+- **權限**：
+  - 上架商品（名稱、成本、售價、市價、來源、文案、圖片、庫存、上下架時間，支援WYSIWYG編輯器）。
+  - 管理庫存（支援 `stock_warning` 低庫存通知）。
+  - 查看已付款訂單數量（下架前），出貨詳情（下架後第4天，含收貨人資訊）。
+  - 填寫物流資訊（黑貓/AfterShip，支援批量出貨）。
+  - 列印出貨單（PDF，含訂單ID、商品、收貨人資訊）。
+  - 管理副手帳號（權限：建立商品、上架、查看訂單、列印出貨單、更新物流）。
+  - 提交資料更動申請（需管理員審核）。
+  - 創建專屬頁面（SupplierPage，支援風版）。
+  - 參與協作（發起提案、加入小組、投資、聊天、投票）。
+- **限制**：
+  - 不參與分潤。
+  - 僅操作自己商品與訂單。
+
+#### 2.6 管理員 (Admin)
+- **層級**：`role = 'admin'`
+- **權限**：
+  - 審核商品上下架（設定費用率：供應商1-4%、平台1-4%、介紹人1-2%）。
+  - 上傳銀行對帳單（CSV，含帳號後5碼與金額），比對訂單。
+  - 審核供應商資料更動申請。
+  - 審核退換貨申請（7天內處理）。
+  - 生成對帳單（每月1日/16日）、撥款清單（每月5日）。
+  - 管理用戶（停權、驗證Email、修改資料）。
+  - 查看訂單、分潤記錄、報表（會員數、訂單量、分潤總額）。
+  - 審計結算（`audit_settlement` 權限）。
+- **限制**：權限低於SUPERADMIN。
+
+#### 2.7 SUPERADMIN
+- **層級**：`role = 'superadmin'`
+- **權限**：
+  - 管理管理員帳號與權限。
+  - 設定全局費用比例（供應商、平台、介紹人）。
+  - 調整分潤比例範圍（大團媽14-18%、中團媽28-32%）。
+  - 監控平台運作，生成統計報表。
+  - 處理系統級問題（資料錯誤、訂單糾紛、系統故障）。
+  - 管理協作功能（審核提案、監控小組活動）。
+- **限制**：不參與日常運營。
+
+---
+
+### 3. 功能與流程
+
+#### 3.1 商品管理
+- **供應商上架商品**：
+  - 提交資訊：名稱、成本、售價、市價、來源、文案、圖片（必填）、庫存描述（WYSIWYG，選填）、庫存（可為NULL表示不限）、上下架時間。
+  - 狀態：`pending_review` → 管理員審核（1-3天） → `active`（通過）或 `rejected`（拒絕，需原因）。
+  - AI分類建議：POST `/api/supplier/product/ai-category`，自動推薦分類。
+- **商品展示**：
+  - 首頁（Home.js）：輪播（Banner.js）、熱銷商品（ProductCard.js）、分類樹（ProductCategory）。
+  - 商品詳情（ProductDetail.js）：圖片、售價、市價、文案、庫存描述（HTML渲染）、討論區、評價、Q&A、加入購物車。
+  - 商店頁面（ShopPage）：團媽自訂SEO標題與社群連結。
+  - 供應商頁面（SupplierPage）：展示商品、許愿池、評價，支援風版（SupplierStyleTemplate）。
+- **上下架與庫存**：
+  - 自動上架：到達 `on_shelf_date`，狀態設為 `active`。
+  - 自動下架：到達 `off_shelf_date`，狀態設為 `inactive`。
+  - 庫存管理：訂單付款後扣減（`stock -= quantity`），低於 `stock_warning` 時通知供應商。
+  - 下架後第4天，供應商可查看出貨詳情（`/supplier/orders`）並列印出貨單（PDF）。
+
+#### 3.2 訂單與出貨
+- **購物車與結帳**：
+  - 購物車（ProductList.js）：顯示商品、數量、總金額。
+  - 結帳（OrderForm.js）：填寫收件人資訊（姓名、電話、地址）、選擇團媽、支付方式（綠界或匯款後5碼）。
+  - 訂單創建：狀態 `pending`，付款期限3天，記錄分潤快照（`big_mom_id`, `middle_mom_percentage` 等）。
+- **支付流程**：
+  - 綠界支付：即時確認，狀態設為 `paid`，扣減庫存。
+  - 匯款：管理員上傳對帳單（BankStatement），比對 `remittance_account_last5` 與金額：
+    - 成功：狀態 `paid`，扣減庫存。
+    - 失敗：保留 `pending`，記錄未匹配資料。
+  - 逾期未付款：狀態 `cancelled`，記錄黑名單（半年內3次停權3個月）。
+- **出貨流程**：
+  - 供應商在下架前查看 `paid` 訂單數量（`/supplier/orders`）。
+  - 下架後第4天，查看出貨詳情，選擇物流公司（LogisticsCompany）並填寫單號（黑貓/AfterShip）。
+  - 批量出貨：POST `/api/supplier/orders/batch-ship`，狀態設為 `shipped`，記錄 `shipped_at`。
+  - 會員收到通知（站內+Email+Line），可於 `/member/track/<order_id>` 查看物流狀態（`tracking_status`）。
+- **訂單完成**：
+  - 物流狀態 `delivered` 後，會員確認收貨（`received_at`）或10天後自動確認。
+  - 狀態設為 `completed`，計算分潤，記錄 `settled_at`。
+- **退換貨**：
+  - 會員於7天內申請（`/api/return/<order_id>`），狀態 `pending`，記錄 `return_request_at`。
+  - 管理員與供應商審核（7天內）：
+    - 同意：狀態 `approved`，會員寄回（`return_tracking_number`）。
+    - 拒絕：狀態 `rejected`，提供原因。
+  - 供應商確認收到退貨，狀態 `processed`，退款至會員（綠界或銀行轉帳），取消分潤。
+
+#### 3.3 分潤機制
+- **可分配利潤**：
+  - 公式：`售價 - 成本 - (成本 * 供應商費用率) - 稅金 - (售價 * 平台費用率) - (成本 * 介紹人獎金率)`。
+  - 稅金：`[(售價 - ceil(售價/1.05)) - (成本 - ceil(成本/1.05))]`。
+- **分潤快照**：
+  - 訂單創建時記錄團媽結構與比例，儲存於 `Order`（`big_mom_id`, `middle_mom_percentage` 等）。
+- **分配規則**：
+  - 大團媽：14-18%（預設15%），無中/小團媽則拿100%。
+  - 中團媽：28-32%（預設28%），無小團媽則拿剩餘。
+  - 小團媽：100% - 大團媽 - 中團媽。
+  - 介紹人：2%成本，若無則歸平台。
+  - 平台：無上線時拿全額分潤。
+- **資格檢查**：
+  - 團媽需支付使用費，逾期暫停資格（`is_subscription_active = False`）。
+  - 逾期1個月降為會員，下線轉移至上線或平台。
+- **結算與支付**：
+  - 訂單完成即結算，分潤記錄於 `Settlement`。
+  - 每月1日/16日生成對帳單，7日簽收，10日/25日撥款（銀行轉帳）。
+  - 對帳單（PDF）包含：供應商金額、團媽分潤、介紹人獎金、稅金、平台利潤。
+
+#### 3.4 團媽資格與升級
+- **費用與有效期限**：
+  - 季費3000元、半年費5500元、年費10000元，記錄於 `SubscriptionOrder`。
+  - 有效期限前1個月生成續費訂單，通知（站內+Email+Line）。
+  - 逾期未繳：資格暫停，1個月後降為會員（`group_mom_level = 0`）。
+- **升級條件**：
+  - 會員 → 小團媽：50個下線 + 支付費用。
+  - 小團媽 → 中團媽：10個同層級小團媽 + 支付費用。
+  - 中團媽 → 大團媽：10個同層級中團媽 + 支付費用。
+- **商品接收**：
+  - 大團媽：從平台接收（`Product.status = 'active'`）。
+  - 中團媽：從大團媽或平台接收。
+  - 小團媽：從中團媽或大團媽接收。
+  - 會員：從小團媽、中團媽、大團媽或平台接收。
+  - 無上線時，平台為最終來源。
+
+#### 3.5 協作功能
+- **提案（CollaborationProposal）**：
+  - 團媽或供應商發起，設定目標金額、描述、截止日期。
+  - 狀態：`draft` → `pending_review`（管理員審核） → `active`（通過）或 `rejected`。
+  - API：POST `/api/collaboration/proposal`。
+- **小組（CollaborationGroup）**：
+  - 提案通過後創建小組，邀請團媽或供應商加入。
+  - 成員可查看提案詳情、參與聊天與投票。
+- **投資（CollaborationInvestment）**：
+  - 成員提交投資金額（最低限額由config.py設定）。
+  - 記錄於 `CollaborationInvestment`，更新提案進度。
+- **聊天（CollaborationChat）**：
+  - 即時聊天（SocketIO），支援文字與圖片，記錄於 `CollaborationChat`。
+  - API：`/sockets/collaboration_socket`，事件：`new_message`。
+- **投票（CollaborationVote）**：
+  - 提案或小組內發起投票，設定選項與截止日期。
+  - 通過閾值（config.py設定）後更新提案狀態。
+  - API：POST `/api/collaboration/vote`。
+- **前端展示**：
+  - CommunityPage.js：展示提案列表、小組詳情、聊天室、投票介面。
+  - SuccessStoryCard.js：展示成功協作案例。
+
+#### 3.6 金流透明與財務合規
+- **結算週期**：
+  - 每月1日/16日生成對帳單（settlement_service.py）。
+  - 7日內簽收（SettlementSignoff.js），記錄 `signed_off_at`。
+  - 10日/25日撥款，記錄 `receipt_confirmed_at`。
+  - 每月5日生成撥款清單（audit_service.py）。
+- **對帳單內容**：
+  - 期間：每月1-15日（a）、16-月底（b）。
+  - 資訊：平台餘額（`current_platform_balance`）、未結算訂單、供應商金額、團媽分潤、介紹人獎金、稅金、平台利潤。
+  - PDF輸出（pdf_generator.py），包含訂單明細與總計。
+- **撥款清單**：
+  - 每月5日生成，記錄總收入、撥款金額、退款調整。
+  - 支援下載（AuditPage.js，PDF/CSV格式）。
+- **平台餘額**：
+  - PlatformBalance 追蹤資金流動（收入、支出、未結算）。
+  - 與銀行API整合，驗證 `current_platform_balance`（待實作）。
+- **審計日誌**：
+  - AuditLog 記錄結算、撥款、對帳單生成（action='generate_settlement'等）。
+  - 確保財務透明與合規。
+
+#### 3.7 其他功能
+- **通知系統**：
+  - 類型：訂單更新、分潤到帳、退款結果、提案狀態、聊天訊息。
+  - 方式：站內（Notification）、Email、Line API。
+  - 即時通知：SocketIO（聊天、投票更新）。
+- **安全措施**：
+  - 認證：JWT token，支援角色權限檢查（auth_service.py）。
+  - CSRF保護：所有POST請求。
+  - 輸入驗證：電話（09開頭10位）、費用比例（1-4%）、時間（ISO格式）。
+  - 密碼：bcrypt哈希。
+  - 資料備份：backup_task.py（每日執行）。
+- **多語言支援**：
+  - 支援繁中、簡中、英文，Product.description 儲存JSON格式。
+  - 前端語言切換（theme.css）。
+- **數據分析**：
+  - 報表（AdminDashboard.js）：會員數、訂單量、分潤總額、下線統計（DownlineStats）。
+  - 團媽報表（MomDashboard.js）：訂單數、消費額、變動記錄。
+  - 供應商報表（SupplierDashboard.js）：銷售量、許愿池結果、評價。
+
+---
+
+### 4. 資料庫模型
+
+#### 4.1 User
+- **欄位**：
+  - `id` (String(36), PK, UUID)
+  - `username` (String(80), Unique, Required)
+  - `password_hash` (String(128), Required)
+  - `role` (String(20), Required): `member`, `supplier`, `admin`, `superadmin`
+  - `group_mom_level` (Integer, Default=0): 0-3
+  - `parent_id` (String(36), Nullable): 上線ID
+  - `profit_percentage` (Float, Nullable): 團媽分潤比例
+  - `referrer_id` (String(36), Nullable): 介紹人ID
+  - `is_verified` (Boolean, Default=False): Email驗證
+  - `suspension_end` (DateTime, Nullable): 停權結束
+  - `name`, `phone` (String(10), Required), `default_address` (String(200), Required)
+  - `company_tax_id` (String(8), Supplier Required): 統編
+  - `company_phone`, `contact_name`, `contact_phone`, `bank_name`, `bank_code`, `bank_account`, `company_email`, `contact_email` (Supplier Required)
+  - `subscription_end_date` (DateTime, Nullable): 團媽費用期限
+  - `is_subscription_active` (Boolean, Default=True): 團媽資格狀態
+
+#### 4.2 Product
+- **欄位**：
+  - `id` (Integer, PK)
+  - `supplier_id` (String(36), Required)
+  - `name` (String(100), Required)
+  - `cost`, `price`, `market_price` (Float, Required/Nullable)
+  - `source` (String(200), Required), `description` (Text, Required, JSON for multi-language)
+  - `stock_description` (Text, Nullable, HTML)
+  - `image_url` (String(200), Required), `video_url` (String(200), Nullable)
+  - `stock` (Integer, Nullable), `stock_warning` (Integer, Nullable)
+  - `status` (String(20), Default='pending_review'): `pending_review`, `active`, `inactive`, `rejected`
+  - `on_shelf_date`, `off_shelf_date` (DateTime, Required)
+  - `supplier_fee_rate`, `platform_fee_rate`, `referrer_bonus_rate` (Float, Default=0.02)
+  - `rejection_reason` (Text, Nullable)
+
+#### 4.3 Order
+- **欄位**：
+  - `id` (String(36), PK, UUID)
+  - `user_id` (String(36), Required)
+  - `product_id` (Integer, Required)
+  - `quantity` (Integer, Required)
+  - `total_price` (Float, Required)
+  - `status` (String(20), Default='pending'): `pending`, `paid`, `shipped`, `completed`, `cancelled`
+  - `payment_deadline`, `shipped_at`, `received_at`, `return_request_at`, `settled_at` (DateTime, Nullable)
+  - `recipient_name`, `recipient_phone`, `recipient_address` (Required)
+  - `remittance_account_last5` (String(5), Nullable)
+  - `logistics_company_id` (Integer, Nullable), `tracking_number`, `tracking_status` (String(50), Nullable)
+  - `big_mom_id`, `middle_mom_id`, `small_mom_id` (String(36), Nullable)
+  - `big_mom_percentage`, `middle_mom_percentage` (Float, Nullable)
+  - `return_status` (String(20), Nullable): `pending`, `approved`, `rejected`, `processed`
+  - `return_tracking_number` (String(50), Nullable)
+  - `profit_distribution_log` (JSON): 分潤記錄
+  - `earned_points` (Integer, Default=0): 積分（隱性）
+
+#### 4.4 Settlement
+- **欄位**：
+  - `id` (Integer, PK)
+  - `period` (String(8), e.g., '2025-04a')
+  - `order_id` (Integer)
+  - `settlement_date`, `signed_off_at`, `receipt_confirmed_at` (DateTime)
+  - `supplier_amount`, `big_mom_amount`, `middle_mom_amount`, `small_mom_amount`, `platform_profit`, `tax_amount`, `referrer_bonus_amount` (Float)
+  - `referrer_user_id` (String(36), Nullable)
+  - `status` (String(20)): `pending`, `signed`, `confirmed`
+  - `is_confirmed` (Boolean)
+
+#### 4.5 PlatformBalance
+- **欄位**：
+  - `id` (Integer, PK)
+  - `period` (String(8))
+  - `current_platform_balance`, `current_supplier_total`, `current_mom_total`, `current_platform_profit`, `unsettled_amount` (Float)
+  - `settlement_date`, `tax_transferred_at` (DateTime, Nullable)
+  - `company_account_id` (Integer)
+  - `is_payment_confirmed` (Boolean)
+  - `unsettled_details` (JSON)
+
+#### 4.6 Collaboration Models
+- **CollaborationProposal**：
+  - `id` (Integer, PK), `user_id` (String(36)), `title`, `description` (Text), `target_amount` (Float), `status` (String(20)), `deadline`, `created_at` (DateTime)
+- **CollaborationGroup**：
+  - `id` (Integer, PK), `proposal_id` (Integer), `name` (String(100)), `members` (JSON), `created_at`
+- **CollaborationInvestment**：
+  - `id` (Integer, PK), `group_id` (Integer), `user_id` (String(36)), `amount` (Float), `invested_at` (DateTime)
+- **CollaborationChat**：
+  - `id` (Integer, PK), `group_id` (Integer), `user_id` (String(36)), `content` (Text), `image_url` (String(200), Nullable), `created_at`
+- **CollaborationVote**：
+  - `id` (Integer, PK), `group_id` (Integer), `user_id` (String(36)), `option_id` (Integer), `created_at`
+
+#### 4.7 其他表
+- **ProductCategory**: `id`, `parent_id`, `name`, `level`, `sales_count`, `click_count`, `sort_weight`
+- **SupplierAssistant**: `id`, `supplier_id`, `username`, `password_hash`, `permissions` (JSON), `name`, `phone`
+- **SupplierUpdateRequest**: `id`, `supplier_id`, `field_name`, `new_value`, `status`, `request_date`, `admin_id`, `updated_at`
+- **Notification**: `id`, `user_id`, `type`, `message`, `is_read`, `created_at`
+- **LogisticsCompany**: `id`, `name`, `created_by`
+- **BankStatement**: `id`, `admin_id`, `file_path`, `upload_date`, `bank_balance`, `is_balance_matched`, `discrepancy_note`
+- **AuditLog**: `id`, `admin_id`, `action`, `timestamp`, `details`, `status`
+- **SubscriptionOrder**: `id`, `user_id`, `plan_type` (`quarterly`, `half_yearly`, `yearly`), `amount`, `status`, `created_at`, `paid_at`
+- **DownlineStats**: `id`, `mom_id`, `downline_id`, `order_count`, `total_spent`, `last_order_date`
+- **ProductReview**: `id`, `product_id`, `user_id`, `rating`, `comment`, `created_at`
+- **ProductQA**: `id`, `product_id`, `user_id`, `question`, `answer`, `answered_by`, `created_at`
+- **ShopPage**: `id`, `mom_id`, `template_id`, `seo_title`, `seo_description`, `social_links` (JSON)
+- **SupplierStyleTemplate**: `id`, `supplier_id`, `name`, `layout` (JSON), `styles` (JSON), `background_image_url`, `seo_title`, `seo_description`, `is_default`, `version`, `is_shared`, `share_price`, `type`
+- **StyleTemplateMarket**: `id`, `template_id`, `supplier_id`, `price`, `purchased_by` (JSON), `listed_at`
+- **SupplierPage**: `id`, `supplier_id`, `style_template_id`, `created_at`, `updated_at`
+- **ProductDiscussion**: `id`, `product_id`, `user_id`, `content`, `parent_id`, `is_approved`, `created_at`
+- **ProductWishlist**: `id`, `user_id`, `title`, `description`, `image_url`, `link_url`, `vote_up`, `vote_down`, `status`, `created_at`, `closed_at`
+- **SupplierReview**: `id`, `supplier_id`, `user_id`, `rating`, `comment`, `created_at`
+
+---
+
+### 5. 前端介面設計
+#### 5.1 會員介面
+- **/shop**: 分類樹（動態排序）、商品列表（ProductCard.js）、篩選（價格、分類）。
+- **/product/<product_id>**: 商品詳情（風版渲染）、供應商連結、討論區（ProductDiscussion）、評價（ProductReview）、Q&A（ProductQA）、分享按鈕（Line、Facebook）。
+- **/wishlist**: 提交與投票許愿（ProductWishlist）。
+- **/member/order/<order_id>**: 訂單進度、退貨表單（RefundForm.js）、物流追蹤（AfterShip）。
+- **/member/reviews**: 查看與提交評價。
+
+#### 5.2 團媽介面
+- **/shop/<shop_page_id>**: 商店頁面（SEO優化，社群分享）。
+- **/mom/dashboard**: 下線統計（DownlineStats）、分潤模擬（ProfitCalculator.js）。
+- **/mom/report/<period>**: 分潤報表與變動記錄。
+- **/community**: 協作功能（提案、小組、投資、聊天、投票，CommunityPage.js）。
+
+#### 5.3 供應商介面
+- **/supplier/product-editor/<product_id>**: 商品編輯（WYSIWYG、AI分類）。
+- **/supplier/page-editor**: 專屬頁面風版（SupplierStyleTemplate）。
+- **/supplier/<supplier_id>/products**: 商品展示、許愿池、評價。
+- **/supplier/orders**: 訂單管理（批量出貨）。
+- **/supplier/report/<period>**: 財務報表（銷售量、訂單數）。
+
+#### 5.4 管理員介面
+- **/admin/dashboard/finance**: 財務總覽（餘額、報表）。
+- **/admin/categories**: 分類管理（新增、排序）。
+- **/admin/product/review**: 商品審核。
+- **/admin/discussion/review**: 討論區審核。
+- **/admin/upload_statement**: 對帳單上傳與比對。
+- **/admin/settlement/<period>**: 對帳單生成與簽收（SettlementSignoff.js）。
+- **/admin/audit**: 撥款清單下載（AuditPage.js）。
+
+---
+
+### 6. 後端API設計
+#### 6.1 會員 API
+- GET `/api/shop/products?category_id=<id>`: 篩選商品。
+- POST `/api/order`: 下單（含團媽選擇）。
+- POST `/api/product/<product_id>/discussion`: 發布討論。
+- POST `/api/wishlist`: 提交許愿。
+- POST `/api/wishlist/<wishlist_id>/vote`: 投票。
+- POST `/api/supplier/<supplier_id>/review`: 供應商評價。
+- POST `/api/return/<order_id>`: 退換貨申請。
+
+#### 6.2 團媽 API
+- POST `/api/shop-page`: 建立商店頁面。
+- GET `/api/mom/dashboard`: 下線統計。
+- GET `/api/mom/report/<period>`: 分潤報表。
+- POST `/api/collaboration/proposal`: 發起提案。
+
+#### 6.3 供應商 API
+- POST `/api/supplier/product/ai-category`: AI分類建議。
+- POST `/api/supplier/page-style`: 專屬頁面風版。
+- GET `/api/supplier/<supplier_id>/products`: 商品與許愿池。
+- POST `/api/supplier/orders/batch-ship`: 批量出貨。
+- POST `/api/supplier/update-request`: 資料更動申請。
+
+#### 6.4 管理員 API
+- POST `/api/admin/category/sort-rules`: 分類排序。
+- POST `/api/settlement/<period>/payout`: 確認撥款。
+- POST `/api/admin/upload_statement`: 上傳對帳單。
+- GET `/api/admin/audit/<period>`: 下載撥款清單。
+
+#### 6.5 協作 API
+- POST `/api/collaboration/proposal`: 創建提案。
+- POST `/api/collaboration/group`: 創建小組。
+- POST `/api/collaboration/investment`: 提交投資。
+- POST `/api/collaboration/vote`: 提交投票。
+- WebSocket `/sockets/collaboration_socket`: 即時聊天。
+
+---
+
+### 7. 案例展示：完整流程與金流
+#### 7.1 背景
+- **角色**：
+  - 會員A：下單者。
+  - 小團媽B：A的上線，介紹人（`referrer_id=B`）。
+  - 大團媽D：B的上線。
+  - 供應商S：商品提供者。
+  - 管理員M：審核與結算。
+- **商品**：手機殼，成本100元，售價200元，`stock=NULL`（不限），`on_shelf_date=2025-04-01`，`off_shelf_date=2025-04-10`。
+- **訂單**：
+  - 訂單1：售價200元。
+  - 訂單2：售價180元（直播優惠9折）。
+- **協作**：B發起提案「新款手機殼推廣」，目標金額5000元。
+- **日期**：2025-04-01起。
+- **餘額**：2025-03b對帳單後，`current_platform_balance`=5000元。
+
+#### 7.2 流程與金流
+1. **商品上架（4月1日）**：
+   - S於 `/supplier/product-editor` 上架手機殼，`stock_note="不限數量"`，選擇「復古風 v2」風版，狀態 `pending_review`。
+   - M於 `/admin/product/review` 審核通過，狀態 `active`。
+
+2. **協作與互動（4月2日）**：
+   - B於 `/community` 發起提案（`CollaborationProposal`），目標金額5000元，狀態 `pending_review` → `active`（M審核通過）。
+   - B創建小組（`CollaborationGroup`），邀請S與團媽E加入。
+   - E投資2000元（`CollaborationInvestment`），S發送聊天訊息「建議推廣黑色款」（`CollaborationChat`）。
+   - 小組投票（`CollaborationVote`）：黑色款vs藍色款，黑色款獲80%票數，提案更新為「推廣黑色款」。
+   - A於 `/product/P123` 留言：「期待黑色款」（`ProductDiscussion`）。
+   - A於 `/wishlist` 提交「無線充電器」（`ProductWishlist`），獲10贊成、2反對。
+
+3. **下單與付款（4月2-3日）**：
+   - 訂單1：A下單（`/api/order`），售價200元，選擇B與D，狀態 `pending`。
+   - 訂單2：A參加S的直播（隱性LiveEvent），使用優惠碼「LIVE10」（9折），售價180元。
+   - 4月3日，M上傳對帳單（`/admin/upload_statement`），`current_platform_balance`=5200元（5000+200+180）：
+     - 比對成功，訂單設為 `paid`，扣減庫存（若有）。
+     - `AuditLog`: `action='upload_bank_statement'`。
+
+4. **出貨與收貨（4月13-23日）**：
+   - 4月13日，S於 `/supplier/orders` 批量出貨，選擇黑貓，填寫單號，`shipped_at`記錄，狀態 `shipped`。
+   - AfterShip更新 `tracking_status=delivered`。
+   - A未確認收貨，4月23日自動設 `received_at`，狀態 `completed`。
+   - A提交評價：商品5星，供應商4星（「出貨快」，`ProductReview`）。
+
+5. **退換貨（4月25日-5月5日，訂單1）**：
+   - 4月25日，A申請退貨（`/api/return/<order_id>`），狀態 `pending`，`return_request_at`記錄。
+   - 4月30日，M與S同意，狀態 `approved`，A寄回（`return_tracking_number`）。
+   - 5月5日，S確認，狀態 `processed`，退款200元（綠界），取消分潤，`settled_at`=2025-05-05。
+
+6. **結算與分潤（4月23日-5月1日）**：
+   - **訂單1（退貨）**：
+     - 退款200元，分潤取消，`settled_at`=2025-05-05。
+   - **訂單2**：
+     - 可分配利潤：`180 - 100 - [(180-171) - (100-95)] - (180*0.02) - (100*0.02) = 70元`。
+     - 分潤：D（15%）=10元，B（剩餘）=60元。
+     - 介紹人獎金：2元（B）。
+     - 平台利潤：`(100*0.02) + (180*0.02) = 5.6元`。
+     - 供應商金額：`100 - 2 = 98元`。
+     - 稅金：`4元`。
+     - `settled_at`=2025-04-23。
+   - 4月23日，訂單完成，分潤記錄於 `Settlement`。
+
+7. **對帳單與撥款（5月1-10日，2025-04b）**：
+   - **期間**：4月16-30日。
+   - **對帳單**（settlement_service.py）：
+     - 平台餘額：5200元。
+     - 未結算訂單：0元。
+     - 結算訂單：訂單2（手機殼，售價180元，成本100元）。
+     - 總計：供應商98元，團媽70元（D=10元，B=60元），稅金4元，介紹人獎金2元，平台利潤5.6元。
+   - **簽收**：5月7日，S、D、B簽收（`/settlement/<period>/signoff`），`signed_off_at`記錄。
+   - **撥款**：5月10日，M確認撥款（`/settlement/<period>/payout`），S收到98元，D=10元，B=62元（60+2），`receipt_confirmed_at`記錄。
+   - **撥款清單**（5月5日，audit_service.py）：
+     - 總收入：180元（訂單2）。
+     - 撥款：98元（S）、70元（團媽）、2元（介紹人）。
+     - 退款：200元（訂單1）。
+     - 平台利潤：5.6元。
+
+8. **對帳單範例**：
+```
+2025-04b 對帳單（4月16日-4月30日）
+當期資訊：
+- 平台應有總訂單金額：5200元
+- 未結算訂單金額：0元
+當期結算訂單：
+- 商品：手機殼 (分類：手機與配件 > 手機殼)
+  - 售價：180元 (原價200元，直播優惠9折)
+  - 成本：100元
+  - 上架時間：2025-04-01
+  - 下架時間：2025-04-10
+  - 出貨時間：2025-04-13
+  - 收貨時間：2025-04-23
+  - 結算時間：2025-04-23
+  - 供應商金額：98元
+  - 大團媽分潤：10元
+  - 小團媽分潤：60元
+  - 介紹人獎金：2元
+  - 稅金：4元
+  - 平台利潤：5.6元
+當期總計：
+- 供應商支付總額：98元
+- 團媽支付總額：70元
+- 介紹人獎金：2元
+- 平台利潤：5.6元
+```
+
+---
+
+### 8. 檔案架構與實現細節
+#### 8.1 後端 (backend/)
+- **app.py**: 初始化Flask、SQLAlchemy、JWT、SocketIO，註冊路由與任務（結算、備份）。
+- **config.py**: 定義金流參數（費用率、分潤比例）、結算時間表（1日/16日結算，5日清單）、Line/Email配置。
+- **extensions.py**: 初始化擴展（SQLAlchemy、JWT、SocketIO、CSRF）。
+- **models/**: 定義資料模型（User、Product、Order、Settlement、Collaboration*等）。
+- **routes/**:
+  - `auth_routes.py`: 登入、註冊、權限檢查。
+  - `product_routes.py`: 商品上架、審核、查詢。
+  - `order_routes.py`: 下單、付款、出貨、收貨。
+  - `refund_routes.py`: 退款申請與審核。
+  - `settlement_routes.py`: 對帳單生成、簽收、撥款。
+  - `audit_routes.py`: 撥款清單生成與下載。
+  - `collaboration_routes.py`: 提案、小組、投資、投票管理。
+- **services/**:
+  - `auth_service.py`: 角色驗證。
+  - `product_service.py`: 商品處理。
+  - `order_service.py`: 分潤計算。
+  - `refund_service.py`: 退款邏輯。
+  - `settlement_service.py`: 結算與對帳單。
+  - `audit_service.py`: 撥款清單。
+  - `notification_service.py`: 站內、Email、Line通知。
+  - `collaboration_service.py`: 協作邏輯。
+  - `chat_service.py`: 聊天處理。
+  - `vote_service.py`: 投票邏輯。
+- **sockets/collaboration_socket.py**: 即時聊天（SocketIO）。
+- **events/**: 事件處理（新訊息通知）。
+- **tasks/**: 定時任務（結算、備份）。
+- **utils/**:
+  - `tax_calculator.py`: 稅金計算。
+  - `profit_calculator.py`: 分潤計算。
+  - `pdf_generator.py`: PDF輸出。
+  - `datetime_utils.py`: 日期處理。
+  - `logger.py`: 日誌記錄。
+
+#### 8.2 前端 (frontend/)
+- **public/index.html**: React入口，含SEO。
+- **src/**:
+  - `App.js`: 路由與佈局。
+  - `components/**: Banner.js（輪播）、ProductCard.js（商品卡片）、OrderForm.js（下單）、RefundForm.js（退款）、SettlementSignoff.js（簽收）、ProfitCalculator.js（分潤模擬）、SuccessStoryCard.js（協作案例）。
+  - `pages/**: Home.js（首頁）、SupplierDashboard.js（供應商）、MomDashboard.js（團媽）、ConsumerDashboard.js（會員）、AdminDashboard.js（管理員）、ProductList.js、ProductDetail.js、OrderPage.js、SettlementPage.js、AuditPage.js、CommunityPage.js（協作）。
+  - `services/api.js`: API客戶端（axios）。
+  - `styles/**: App.css（全局）、theme.css（藍/白/綠色調）。
+
+#### 8.3 資料庫 (database/)
+- **schema.sql**: 表結構（User、Product、Order等）。
+- **seed.sql**: 測試數據。
+
+#### 8.4 文件 (docs/)
+- **README.md**: 安裝與運行說明。
+- **api_spec.md**: API端點與參數。
+
+---
+
+### 9. 改進建議
+#### 9.1 已納入改進
+1. **庫存管理**：新增 `stock_warning`，低庫存時通知（notification_service.py）。
+2. **退換貨效率**：7天處理期限，支援站內+Email+Line通知。
+3. **結算頻率**：訂單完成即結算，對帳單每月兩次。
+4. **物流整合**：初期黑貓手動更新，後期AfterShip（`tracking_updated_at`）。
+5. **權限細化**：管理員新增 `audit_settlement`，副手新增 `update_tracking`。
+6. **審計日誌**：AuditLog記錄結算與撥款。
+7. **平台利潤透明**：對帳單細分手續費與分潤。
+8. **協作功能**：提案、小組、投資、聊天、投票，促進互動。
+
+#### 9.2 新增建議
+1. **團媽推薦系統**：
+   - **問題**：會員選擇團媽無指引，影響轉換率。
+   - **建議**：AI根據購物偏好推薦團媽，記錄於 `Recommendation` 表（`id`, `user_id`, `mom_id`, `score`）。
+   - **實作**：於 `/shop` 顯示「推薦團媽」，API：GET `/api/recommendation/mom`。
+2. **供應商合作模式**：
+   - **問題**：供應商與團媽缺乏深度合作。
+   - **建議**：支援獨家合作協議，調整分潤比例。
+   - **實作**：新增 `CooperationAgreement` 表（`id`, `supplier_id`, `mom_id`, `profit_share_rate`），API：POST `/api/cooperation/agreement`。
+3. **物流地圖追蹤**：
+   - **問題**：AfterShip僅提供狀態，缺乏視覺化。
+   - **建議**：整合Google Maps，顯示物流路徑。
+   - **實作**：Order新增 `tracking_coordinates` (JSON)，於 `/member/track/<order_id>` 顯示地圖。
+4. **多語言編輯器**：
+   - **問題**：WYSIWYG編輯器可能不支援多語言。
+   - **建議**：確保編輯器支援繁/簡/英，Product.description使用JSON。
+   - **實作**：升級WYSIWYG套件，新增語言切換按鈕。
+
+---
+
+### 10. 總結
+- **系統完整性**：
+  - 角色功能：會員、團媽、供應商、管理員、SUPERADMIN均有明確權限與介面。
+  - 流程透明：從上架到結算，金流與分潤精確，審計日誌保障合規。
+  - 用戶體驗：討論區、許愿池、協作功能增強互動。
+  - 資料庫設計：支援高效查詢與擴展。
+- **改進效益**：
+  - 供應商：快速審核、庫存警告、合作模式提升效率。
+  - 團媽：推薦系統、協作功能促進成長。
+  - 會員：自助功能、物流追蹤提升滿意度。
+- **未來展望**：
+  - 啟用隱性功能（直播、聊天、任務、排行榜）增強黏性。
+  - 多語言與國際物流支援全球化。
+  - AI推薦與遊戲化（抽獎、競賽）深化參與。
+
+---
+
+以上整理涵蓋所有檔案內容與討論串細節，確保功能一致且無遺漏。如需進一步細化某部分（例如特定API實現、資料庫索引優化、前端組件設計），請告知！

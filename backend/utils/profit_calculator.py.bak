@@ -1,0 +1,124 @@
+from decimal import Decimal, ROUND_HALF_UP
+from typing import Optional, Dict, Union
+from datetime import datetime
+from extensions import db
+from models.group_mom_level import GroupMomLevel
+
+class ProfitCalculator:    @staticmethod
+    def calculate_order_profit(
+        selling_price: float,
+        cost: float,
+        user_id: Optional[str] = None,
+        config: Optional[Dict] = None
+    ) -> Dict[str, Union[float, Dict[str, float]]]:
+        """計算訂單的詳細分潤
+        
+        Args:
+            selling_price: 售價
+            cost: 成本
+            user_id: 訂單所屬用戶ID
+            config: 費率配置,如果不提供則使用預設值
+            
+        Returns:
+            Dict: 包含所有分潤細節的字典
+        """
+        from models.user import User
+        from config import Config as AppConfig
+        
+        # 使用提供的配置或預設值
+        config = config or {
+            'platform_fee_rate': AppConfig.PLATFORM_FEE_RATE,
+            'supplier_fee_rate': AppConfig.SUPPLIER_FEE_RATE,
+            'referrer_bonus_rate': AppConfig.REFERRER_BONUS_RATE
+        }
+        
+        # 轉換為 Decimal 以確保精確計算
+        selling_price = Decimal(str(selling_price))
+        cost = Decimal(str(cost))
+        
+        # 計算稅金
+        tax_amount = Decimal(str(ProfitCalculator.calculate_tax(float(selling_price), float(cost))))
+        
+        # 計算基本費用
+        platform_fee = selling_price * Decimal(str(config['platform_fee_rate']))
+        supplier_fee = cost * Decimal(str(config['supplier_fee_rate']))
+        
+        # 取得用戶及其上線資訊
+        user = User.query.get(user_id) if user_id else None
+        upline_chain = []
+        referrer_bonus = Decimal('0')
+        
+        if user:
+            # 檢查是否有介紹人並計算獎金
+            if user.referrer_id:
+                referrer_bonus = cost * Decimal(str(config['referrer_bonus_rate']))
+                
+            # 獲取團媽鏈
+            current = user
+            while current and current.parent_id and len(upline_chain) < 3:  # 最多找3層
+                parent = User.query.get(current.parent_id)
+                if parent and parent.group_mom_level:
+                    upline_chain.append(parent)
+                current = parent
+        
+        # 計算可分配利潤
+        distributable_profit = (
+            selling_price - 
+            cost - 
+            tax_amount - 
+            platform_fee - 
+            supplier_fee - 
+            referrer_bonus
+        )
+        
+        # 計算供應商金額
+        supplier_amount = cost - supplier_fee
+        
+        # 計算團媽分潤
+        mom_profits = ProfitCalculator.calculate_mom_profits(
+            float(distributable_profit),
+            big_mom_rate=float(upline_chain[0].profit_percentage) if upline_chain else None,
+            middle_mom_rate=float(upline_chain[1].profit_percentage) if len(upline_chain) > 1 else None,
+            has_small_mom=len(upline_chain) > 2
+        )
+        
+        # 合併結果
+        result = {
+            'supplier_amount': float(supplier_amount),
+            'tax_amount': float(tax_amount),
+            'platform_fee': float(platform_fee),
+            'supplier_fee': float(supplier_fee),
+            'referrer_bonus': float(referrer_bonus),
+            'distributable_profit': float(distributable_profit),
+            'profit_breakdown': mom_profits
+        }
+        
+        # 添加團媽ID和分潤比例快照
+        if upline_chain:
+            result.update({
+                'big_mom_id': upline_chain[0].id if upline_chain else None,
+                'big_mom_rate': float(upline_chain[0].profit_percentage) if upline_chain else None,
+                'middle_mom_id': upline_chain[1].id if len(upline_chain) > 1 else None,
+                'middle_mom_rate': float(upline_chain[1].profit_percentage) if len(upline_chain) > 1 else None,
+                'small_mom_id': upline_chain[2].id if len(upline_chain) > 2 else None
+            })
+            
+        return result
+
+    @staticmethod
+    def verify_calculation(total_price, profit_breakdown):
+        """
+        驗證金流計算是否正確
+        """
+        total = sum([
+            profit_breakdown['supplier_amount'],
+            profit_breakdown['tax_amount'],
+            profit_breakdown['platform_fee'],
+            profit_breakdown['supplier_fee'],
+            profit_breakdown['big_mom_profit'],
+            profit_breakdown['middle_mom_profit'],
+            profit_breakdown['small_mom_profit'],
+            profit_breakdown['platform_profit']
+        ])
+        
+        return abs(total - total_price) < 0.01  # 允許0.01元誤差

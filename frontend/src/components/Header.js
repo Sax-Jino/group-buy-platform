@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import SearchBar from './SearchBar';
 import { Menu, Dropdown, Badge } from 'antd';
-import { UserOutlined, BellOutlined, DollarOutlined } from '@ant-design/icons';
+import { UserOutlined, BellOutlined, DollarOutlined, GlobalOutlined } from '@ant-design/icons';
 import '../styles/Header.css';
+import LanguageSelector from './LanguageSelector';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -52,9 +53,9 @@ const Header = () => {
           <div className="search-container">
             <SearchBar />
           </div>
-          
-          <div className="nav-right">
+            <div className="nav-right">
             <span className="search-icon" onClick={() => navigate('/search')}>🔍</span>
+            <LanguageSelector />
             <Link to="/cart" className="cart">
               🛒
               {cartItemCount > 0 && (

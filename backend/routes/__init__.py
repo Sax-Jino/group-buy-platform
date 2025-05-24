@@ -10,6 +10,7 @@ from .recipient_routes import bp as recipient_bp
 from .payment_routes import bp as payment_bp
 from .supplier_assistant import bp as supplier_assistant_bp
 from .user_routes import bp as user_bp
+from .locale_routes import bp as locale_bp
 
 def register_blueprints(app):
     """註冊所有的路由藍圖"""
@@ -25,6 +26,6 @@ def register_blueprints(app):
     app.register_blueprint(collaboration_bp, url_prefix=f'{PREFIX}/collaboration')
     app.register_blueprint(audit_bp, url_prefix=f'{PREFIX}/audit')
     app.register_blueprint(refund_bp, url_prefix=f'{PREFIX}/refunds')
-    app.register_blueprint(recipient_bp, url_prefix=f'{PREFIX}/recipients')
-    app.register_blueprint(payment_bp, url_prefix=f'{PREFIX}/payments')
+    app.register_blueprint(recipient_bp, url_prefix=f'{PREFIX}/recipients')    app.register_blueprint(payment_bp, url_prefix=f'{PREFIX}/payments')
     app.register_blueprint(supplier_assistant_bp, url_prefix=f'{PREFIX}/supplier-assistants')
+    app.register_blueprint(locale_bp)

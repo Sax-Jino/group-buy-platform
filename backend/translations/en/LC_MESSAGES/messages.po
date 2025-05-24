@@ -1,0 +1,145 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: group-buy-platform\n"
+"POT-Creation-Date: 2025-05-24 10:00+0800\n"
+"PO-Revision-Date: 2025-05-24 10:00+0800\n"
+"Last-Translator: Your Name <your.email@example.com>\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# Common
+msgid "Submit"
+msgstr "Submit"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "Save"
+msgstr "Save"
+
+msgid "Delete"
+msgstr "Delete"
+
+msgid "Edit"
+msgstr "Edit"
+
+msgid "View"
+msgstr "View"
+
+msgid "Back"
+msgstr "Back"
+
+# User roles
+msgid "member"
+msgstr "Member"
+
+msgid "small_mom"
+msgstr "Small Group Host"
+
+msgid "medium_mom"
+msgstr "Medium Group Host"
+
+msgid "large_mom"
+msgstr "Large Group Host"
+
+# Notification categories
+msgid "system"
+msgstr "System Notification"
+
+msgid "order"
+msgstr "Order Notification"
+
+msgid "financial"
+msgstr "Financial Notification"
+
+msgid "collaboration"
+msgstr "Collaboration Notification"
+
+# Notification priorities
+msgid "high"
+msgstr "High"
+
+msgid "normal"
+msgstr "Normal"
+
+msgid "low"
+msgstr "Low"
+
+# Order status
+msgid "pending"
+msgstr "Pending"
+
+msgid "paid"
+msgstr "Paid"
+
+msgid "shipped"
+msgstr "Shipped"
+
+msgid "completed"
+msgstr "Completed"
+
+msgid "cancelled"
+msgstr "Cancelled"
+
+msgid "refund_pending"
+msgstr "Refund Pending"
+
+msgid "refund_approved"
+msgstr "Refund Approved"
+
+msgid "refund_processed"
+msgstr "Refund Processed"
+
+# Error messages
+msgid "Invalid username or password"
+msgstr "Invalid username or password"
+
+msgid "Email already registered"
+msgstr "Email already registered"
+
+msgid "Username already taken"
+msgstr "Username already taken"
+
+msgid "Password too weak"
+msgstr "Password too weak"
+
+msgid "Invalid email format"
+msgstr "Invalid email format"
+
+msgid "Invalid phone format"
+msgstr "Invalid phone format"
+
+msgid "Order not found"
+msgstr "Order not found"
+
+msgid "Insufficient stock"
+msgstr "Insufficient stock"
+
+msgid "Payment failed"
+msgstr "Payment failed"
+
+msgid "Refund failed"
+msgstr "Refund failed"
+
+# Success messages
+msgid "Login successful"
+msgstr "Login successful"
+
+msgid "Registration successful"
+msgstr "Registration successful"
+
+msgid "Order placed successfully"
+msgstr "Order placed successfully"
+
+msgid "Payment successful"
+msgstr "Payment successful"
+
+msgid "Refund successful"
+msgstr "Refund successful"
+
+msgid "Profile updated successfully"
+msgstr "Profile updated successfully"

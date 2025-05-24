@@ -53,20 +53,32 @@ class Order(db.Model):
     supplier_paid_at = db.Column(db.DateTime)
     
     # 物流相關
-    recipient_name = db.Column(db.String(100), nullable=False)
-    recipient_phone = db.Column(db.String(10), nullable=False)
-    recipient_address = db.Column(db.String(200), nullable=False)
-    logistics_company_id = db.Column(db.Integer, db.ForeignKey('logistics_company.id'))
+    logistics_company_id = db.Column(db.Integer, db.ForeignKey('logistics_companies.id'))
     tracking_number = db.Column(db.String(50))
-    shipped_at = db.Column(db.DateTime)
-    received_at = db.Column(db.DateTime)
+    shipping_status = db.Column(db.String(20))  # created, picked_up, in_transit, out_for_delivery, delivered, exception
+    shipping_history = db.Column(JSON)  # 完整的物流歷程記錄
+    current_location = db.Column(db.String(200))  # 目前位置
+    shipping_type = db.Column(db.String(20))  # normal, express, frozen, cold
+    estimated_delivery_date = db.Column(db.DateTime)  # 預計送達日期
+    actual_delivery_date = db.Column(db.DateTime)  # 實際送達日期
+    delivery_attempts = db.Column(db.Integer, default=0)  # 嘗試配送次數
+    recipient_signed = db.Column(db.Boolean, default=False)  # 是否已簽收
+    signature_image = db.Column(db.String(200))  # 簽收圖片路徑
+    last_tracking_update = db.Column(db.DateTime)  # 最後更新追蹤資訊的時間
+    tracking_status_details = db.Column(db.Text)  # 詳細的追蹤狀態說明
     
-    # 退貨相關
-    return_status = db.Column(db.String(20))  # pending, approved, rejected, processed
-    return_request_at = db.Column(db.DateTime)
-    return_tracking_number = db.Column(db.String(50))
+    # 收件人資訊
+    recipient_name = db.Column(db.String(100))
+    recipient_phone = db.Column(db.String(20))
+    recipient_address = db.Column(db.String(200))
+    recipient_notes = db.Column(db.Text)  # 收件特殊要求
+    
+    # 物流公司關聯
+    logistics_company = db.relationship('LogisticsCompany', backref='orders')
     
     # 時間戳記
+    shipped_at = db.Column(db.DateTime)  # 出貨時間
+    received_at = db.Column(db.DateTime)  # 收貨時間
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

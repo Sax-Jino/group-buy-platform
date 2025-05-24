@@ -10,6 +10,13 @@ const api = axios.create({
     }
 });
 
+// 添加語言請求攔截器
+api.interceptors.request.use(config => {
+    const language = localStorage.getItem('language') || 'zh_TW';
+    config.headers['Accept-Language'] = language;
+    return config;
+});
+
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('jwtToken');
     if (token) {

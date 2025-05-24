@@ -1,0 +1,145 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: group-buy-platform\n"
+"POT-Creation-Date: 2025-05-24 10:00+0800\n"
+"PO-Revision-Date: 2025-05-24 10:00+0800\n"
+"Last-Translator: Your Name <your.email@example.com>\n"
+"Language-Team: Simplified Chinese\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+# Common
+msgid "Submit"
+msgstr "提交"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Edit"
+msgstr "编辑"
+
+msgid "View"
+msgstr "查看"
+
+msgid "Back"
+msgstr "返回"
+
+# User roles
+msgid "member"
+msgstr "普通会员"
+
+msgid "small_mom"
+msgstr "小团妈"
+
+msgid "medium_mom"
+msgstr "中团妈"
+
+msgid "large_mom"
+msgstr "大团妈"
+
+# Notification categories
+msgid "system"
+msgstr "系统通知"
+
+msgid "order"
+msgstr "订单通知"
+
+msgid "financial"
+msgstr "财务通知"
+
+msgid "collaboration"
+msgstr "协作通知"
+
+# Notification priorities
+msgid "high"
+msgstr "高"
+
+msgid "normal"
+msgstr "一般"
+
+msgid "low"
+msgstr "低"
+
+# Order status
+msgid "pending"
+msgstr "待付款"
+
+msgid "paid"
+msgstr "已付款"
+
+msgid "shipped"
+msgstr "已发货"
+
+msgid "completed"
+msgstr "已完成"
+
+msgid "cancelled"
+msgstr "已取消"
+
+msgid "refund_pending"
+msgstr "退款申请处理中"
+
+msgid "refund_approved"
+msgstr "退款申请已通过"
+
+msgid "refund_processed"
+msgstr "退款已完成"
+
+# Error messages
+msgid "Invalid username or password"
+msgstr "用户名或密码错误"
+
+msgid "Email already registered"
+msgstr "此电子邮件已注册"
+
+msgid "Username already taken"
+msgstr "此用户名已被使用"
+
+msgid "Password too weak"
+msgstr "密码强度不足"
+
+msgid "Invalid email format"
+msgstr "电子邮件格式错误"
+
+msgid "Invalid phone format"
+msgstr "电话格式错误"
+
+msgid "Order not found"
+msgstr "找不到订单"
+
+msgid "Insufficient stock"
+msgstr "库存不足"
+
+msgid "Payment failed"
+msgstr "付款失败"
+
+msgid "Refund failed"
+msgstr "退款失败"
+
+# Success messages
+msgid "Login successful"
+msgstr "登录成功"
+
+msgid "Registration successful"
+msgstr "注册成功"
+
+msgid "Order placed successfully"
+msgstr "订单创建成功"
+
+msgid "Payment successful"
+msgstr "付款成功"
+
+msgid "Refund successful"
+msgstr "退款成功"
+
+msgid "Profile updated successfully"
+msgstr "个人资料更新成功"
