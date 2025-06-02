@@ -20,7 +20,7 @@ class Notification(db.Model):
     socket_sent = db.Column(db.Boolean, default=False)
     
     # 額外資訊
-    metadata = db.Column(db.JSON)  # 存儲額外資訊，如按鈕、連結等
+    extra_data = db.Column(db.JSON)  # 存儲額外資訊，如按鈕、連結等
     error_log = db.Column(db.Text)  # 發送失敗記錄
     
     # 關聯
@@ -36,7 +36,7 @@ class Notification(db.Model):
             'created_at': self.created_at.isoformat(),
             'priority': self.priority,
             'category': self.category,
-            'metadata': self.metadata
+            'extra_data': self.extra_data
         }
         
     @property
