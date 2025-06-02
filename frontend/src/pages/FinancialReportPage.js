@@ -67,13 +67,13 @@ const FinancialReportPage = () => {
     try {
       const [start, end] = dateRange;
       let url = '';
+      let period = moment().format('YYYYMM') + (moment().date() <= 15 ? 'a' : 'b');
       
       switch (type) {
         case 'financial':
           url = `/api/financial/export/financial-report?start_date=${start.toISOString()}&end_date=${end.toISOString()}`;
           break;
         case 'settlement':
-          const period = moment().format('YYYYMM') + (moment().date() <= 15 ? 'a' : 'b');
           url = `/api/financial/export/settlement-report/${period}`;
           break;
         default:

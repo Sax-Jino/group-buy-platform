@@ -21,6 +21,7 @@ import NotificationHandler from './components/NotificationHandler';
 import AuditManagementPage from './pages/AuditManagementPage';
 import AuditReportDetailPage from './pages/AuditReportDetailPage';
 import FinancialReportPage from './pages/FinancialReportPage';
+import PrivateRoute from './components/PrivateRoute';
 import './styles/global.css';
 
 function App() {

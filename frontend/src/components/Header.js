@@ -11,6 +11,7 @@ const Header = () => {
   const navigate = useNavigate();
   const isAuthenticated = !!localStorage.getItem('token');
   const cartItems = useSelector(state => state.cart.items);
+  const user = useSelector(state => state.auth.user); // 新增 user 取得
   const [showUserMenu, setShowUserMenu] = useState(false);
   const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 

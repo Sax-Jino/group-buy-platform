@@ -76,3 +76,19 @@ class SettlementStatement(db.Model):
     
     # 關聯
     settlement = db.relationship('Settlement', backref=db.backref('statements', lazy='dynamic'))
+
+class SettlementItem(db.Model):
+    __tablename__ = 'settlement_items'
+
+    id = db.Column(db.Integer, primary_key=True)
+    settlement_id = db.Column(db.Integer, db.ForeignKey('settlements.id'), nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    details = db.Column(JSON)
+    status = db.Column(db.String(20), default='pending')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # 關聯
+    settlement = db.relationship('Settlement', backref=db.backref('items', lazy='dynamic'))
+    order = db.relationship('Order', backref=db.backref('settlement_item', uselist=False))
