@@ -26,6 +26,7 @@ def register_blueprints(app):
     app.register_blueprint(collaboration_bp, url_prefix=f'{PREFIX}/collaboration')
     app.register_blueprint(audit_bp, url_prefix=f'{PREFIX}/audit')
     app.register_blueprint(refund_bp, url_prefix=f'{PREFIX}/refunds')
-    app.register_blueprint(recipient_bp, url_prefix=f'{PREFIX}/recipients')    app.register_blueprint(payment_bp, url_prefix=f'{PREFIX}/payments')
+    app.register_blueprint(recipient_bp, url_prefix=f'{PREFIX}/recipients')
+    app.register_blueprint(payment_bp, url_prefix=f'{PREFIX}/payments')
     app.register_blueprint(supplier_assistant_bp, url_prefix=f'{PREFIX}/supplier-assistants')
     app.register_blueprint(locale_bp)

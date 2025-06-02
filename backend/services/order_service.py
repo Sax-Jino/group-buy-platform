@@ -104,6 +104,19 @@ class OrderService:
         if unsettled_order:
             unsettled_order.status = 'awaiting_shipment'
         
+        # 新增：建立金流交易紀錄
+        from models.payment_transaction import PaymentTransaction
+        payment_tx = PaymentTransaction(
+            user_id=order.user_id,
+            order_id=order.id,
+            type='order',
+            amount=order.total_price,
+            status='completed',
+            method=order.payment_method or 'bank_transfer',
+            proof=order.remittance_account_last5,
+            remark='訂單付款驗證通過',
+        )
+        db.session.add(payment_tx)
         db.session.commit()
         return order
 

@@ -2,7 +2,8 @@ from extensions import db
 from datetime import datetime
 
 class Notification(db.Model):
-    __tablename__ = 'notifications'    id = db.Column(db.Integer, primary_key=True)
+    __tablename__ = 'notifications'
+    id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     type = db.Column(db.String(20), nullable=False)  # order_status, subscription_warning, return_update, shipment_reminder, order_delay, calculation_issue, tax_payment_reminder
     message = db.Column(db.Text, nullable=False)
