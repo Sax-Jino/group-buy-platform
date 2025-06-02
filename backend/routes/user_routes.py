@@ -63,9 +63,20 @@ def change_password():
         if not user.verify_password(data['old_password']):
             return jsonify({"error": "Invalid old password"}), 400
 
+        # SUPERADMIN 密碼變更需額外驗證特殊密碼
+        if user.role == 'superadmin' and user.username == 'JackeyChen':
+            special_code = data.get('superadmin_code')
+            if special_code != 'Jone200239!':
+                return jsonify({"error": "需提供正確的 SUPERADMIN 驗證碼"}), 403
+
         user.password_hash = generate_password_hash(data['new_password'])
         db.session.commit()
         return jsonify({"message": "Password changed successfully"}), 200
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 400
+
+# 若有管理員新增/修改 superadmin 的 route，請於該流程中加入：
+# if data.get('role') == 'superadmin':
+#     if not (data.get('username') == 'JackeyChen') or not User.is_superadmin_unique():
+#         return jsonify({"error": "SUPERADMIN 僅允許唯一 JackeyChen"}), 400

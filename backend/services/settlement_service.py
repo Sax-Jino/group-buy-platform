@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from sqlalchemy import and_, or_
 from models.order import Order
-from models.settlement import Settlement, UnsettledOrder, SettlementStatement, SettlementItem
+from models.settlement import Settlement, UnsettledOrder
 from models.user import User
 from extensions import db
 from config import Config

@@ -8,6 +8,14 @@ class AuthService:
         if not all(field in data for field in required_fields):
             raise ValueError("Missing required fields")
         
+        # 若註冊 superadmin，強制唯一且帳號為 JackeyChen
+        if data.get('role') == 'superadmin':
+            from models.user import User
+            if not (data.get('username') == 'JackeyChen'):
+                raise ValueError("SUPERADMIN 僅允許帳號 JackeyChen")
+            if not User.is_superadmin_unique() or User.query.filter_by(role='superadmin').count() > 0:
+                raise ValueError("系統已存在 SUPERADMIN，無法重複建立")
+        
         if User.query.filter_by(email=data['email']).first():
             raise ValueError("Email already registered")
         
@@ -21,7 +29,8 @@ class AuthService:
         user = User(
             email=data['email'],
             password_hash=generate_password_hash(data['password']),
-            role='member',  # 預設角色改為 member
+            role=data.get('role', 'member'),
+            username=data.get('username', data['email']),
             name=data['name'],
             phone=data.get('phone'),
             line_id=data.get('line_id'),

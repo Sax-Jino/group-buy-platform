@@ -85,3 +85,13 @@ class User(db.Model):
             'supplier_id': self.supplier_id,
             'permissions': self.permissions
         }
+
+    @classmethod
+    def is_superadmin_unique(cls):
+        """
+        檢查是否僅有一個 SUPERADMIN，且帳號為 JackeyChen
+        """
+        superadmins = cls.query.filter_by(role='superadmin').all()
+        if len(superadmins) != 1:
+            return False
+        return superadmins[0].username == 'JackeyChen'
