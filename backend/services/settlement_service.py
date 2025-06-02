@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from sqlalchemy import and_, or_
 from models.order import Order
-from models.settlement import Settlement, UnsettledOrder
+from models.settlement import Settlement, UnsettledOrder, SettlementStatement, SettlementItem
 from models.user import User
 from extensions import db
 from config import Config
@@ -101,9 +101,8 @@ class SettlementService:
                     else order.small_mom_amount)
                 } for order in orders]
             )
-            
             db.session.add(settlement)
-            
+            db.session.commit()  # 先 commit 以產生 settlement.id
             # 建立對帳單
             statement = SettlementStatement(
                 settlement_id=settlement.id,
@@ -130,7 +129,6 @@ class SettlementService:
                     'status': order.return_status
                 } for order in orders if order.return_status]
             )
-            
             db.session.add(statement)
         
         db.session.commit()
@@ -204,7 +202,7 @@ class SettlementService:
             
         # 建立結算單
         settlement = Settlement(
-            type=settlement_type,
+            settlement_type=settlement_type,  # 修正欄位名稱
             status='pending',
             created_at=datetime.utcnow()
         )
