@@ -33,7 +33,8 @@ export const socket = io({
     },
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
-    timeout: 60000
+    timeout: 60000,
+    autoConnect: true
 });
 
 socket.on('connect', () => {
