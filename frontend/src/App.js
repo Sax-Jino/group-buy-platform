@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 import store from './store';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -22,9 +22,28 @@ import AuditManagementPage from './pages/AuditManagementPage';
 import AuditReportDetailPage from './pages/AuditReportDetailPage';
 import FinancialReportPage from './pages/FinancialReportPage';
 import PrivateRoute from './components/PrivateRoute';
+import { setUser, clearUser } from './store/reducers/authReducer';
+import { getProfile } from './api';
 import './styles/global.css';
 
 function App() {
+    const dispatch = useDispatch();
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            getProfile(token)
+                .then(user => {
+                    dispatch(setUser(user));
+                })
+                .catch(() => {
+                    dispatch(clearUser());
+                    localStorage.removeItem('token');
+                });
+        } else {
+            dispatch(clearUser());
+        }
+    }, [dispatch]);
+
     return (
         <Provider store={store}>
             <Router>

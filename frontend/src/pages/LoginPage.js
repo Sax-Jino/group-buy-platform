@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../store/reducers/authReducer';
+import { getProfile } from '../api';
 import '../styles/LoginPage.css';
 
 const LoginPage = () => {
@@ -7,6 +10,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,6 +23,13 @@ const LoginPage = () => {
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem('token', data.access_token);
+        // 登入成功後自動取得 user profile 並寫入 redux
+        try {
+          const user = await getProfile(data.access_token);
+          dispatch(setUser(user));
+        } catch (err) {
+          // 若 profile 取得失敗，仍可導向 profile 頁
+        }
         navigate('/profile');
       } else {
         setError(data.error || '登入失敗');

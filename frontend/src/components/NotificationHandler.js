@@ -10,7 +10,7 @@ import '../styles/NotificationHandler.css';
 const NotificationHandler = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { userRole } = useSelector(state => state.auth);
+    const userRole = useSelector(state => state.auth.userRole);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isDrawerVisible, setIsDrawerVisible] = useState(false);

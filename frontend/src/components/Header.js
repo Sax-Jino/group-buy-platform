@@ -26,7 +26,7 @@ const Header = () => {
         <Link to="/profile">個人資料</Link>
       </Menu.Item>
       {/* 根據用戶角色顯示結算管理 */}
-      {(user?.role === 'admin' || user?.role === 'supplier' || user?.group_mom_level > 0) && (
+      {(user && (user.role === 'admin' || user.role === 'supplier' || user.group_mom_level > 0)) && (
         <Menu.Item key="settlements">
           <Link to="/settlements">
             <DollarOutlined /> 結算管理
@@ -63,7 +63,7 @@ const Header = () => {
                 <span className="cart-count">{cartItemCount}</span>
               )}
             </Link>
-            {isAuthenticated ? (
+            {isAuthenticated && user ? (
               <Dropdown overlay={userMenu} trigger={['click']}>
                 <span className="user" onClick={() => setShowUserMenu(!showUserMenu)}>
                   個人中心 ▼

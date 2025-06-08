@@ -1,7 +1,7 @@
 import axios from 'axios';
 import io from 'socket.io-client';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = '/api';
 
 const api = axios.create({
     baseURL: API_URL,
@@ -25,7 +25,7 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-export const socket = io('http://localhost:5000/collaboration', {
+export const socket = io('/collaboration', {
     auth: {
         token: localStorage.getItem('jwtToken')
     }
