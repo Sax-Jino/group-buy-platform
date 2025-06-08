@@ -25,7 +25,7 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-export const socket = io('/', {
+export const socket = io({
     path: '/socket.io',
     transports: ['websocket', 'polling'],
     auth: {
@@ -33,7 +33,7 @@ export const socket = io('/', {
     },
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
-    timeout: 20000
+    timeout: 60000
 });
 
 socket.on('connect', () => {
