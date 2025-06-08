@@ -2,7 +2,8 @@ from datetime import datetime
 from extensions import db
 from models.order import Order
 from models.logistics_company import LogisticsCompany
-from aftership import APIv4
+import tracking
+from tracking import auth, exceptions
 from flask import current_app
 import logging
 from celery import shared_task
@@ -31,7 +32,12 @@ class LogisticsService:
     def __init__(self):
         self.api_key = current_app.config.get('AFTERSHIP_API_KEY')
         if self.api_key:
-            self.api = APIv4(self.api_key)
+            self.api = tracking.Client(
+                tracking.Configuration(
+                    api_key=self.api_key,
+                    authentication_type=auth.ApiKey
+                )
+            )
         else:
             self.api = None
             logger.warning('AfterShip API key not configured')

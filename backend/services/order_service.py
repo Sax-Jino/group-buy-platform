@@ -3,7 +3,7 @@ from models.order import Order
 from models.product import Product
 from models.user import User
 from models.company_account import CompanyAccount
-from models.unsettled_order import UnsettledOrder
+from models.settlement import UnsettledOrder
 from datetime import datetime, timedelta
 
 class OrderService:
