@@ -25,7 +25,7 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-export const socket = io('/socket.io', {
+export const socket = io('/', {
     path: '/socket.io',
     transports: ['websocket', 'polling'],
     auth: {
