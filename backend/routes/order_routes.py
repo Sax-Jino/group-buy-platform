@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from services.order_service import OrderService
 from services.logistics_service import LogisticsService
@@ -7,7 +7,6 @@ from extensions import csrf
 bp = Blueprint('order_routes', __name__)
 
 order_service = OrderService()
-logistics_service = LogisticsService()
 
 @bp.route('', methods=['POST'])
 @jwt_required()
@@ -124,6 +123,8 @@ def update_order(order_id):
 @jwt_required()
 def get_tracking_info(order_id):
     user_id = get_jwt_identity()
+    api_key = current_app.config.get('AFTERSHIP_API_KEY')
+    logistics_service = LogisticsService(api_key=api_key)
     try:
         tracking_info = logistics_service.get_tracking_info(order_id, user_id)
         return jsonify(tracking_info), 200

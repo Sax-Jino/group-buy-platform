@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { Provider, useDispatch } from 'react-redux';
-import store from './store';
+import { useDispatch } from 'react-redux';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
@@ -23,7 +22,7 @@ import AuditReportDetailPage from './pages/AuditReportDetailPage';
 import FinancialReportPage from './pages/FinancialReportPage';
 import PrivateRoute from './components/PrivateRoute';
 import { setUser, clearUser } from './store/reducers/authReducer';
-import { getProfile } from './api';
+import { getProfile } from './utils/api';
 import './styles/global.css';
 
 function App() {
@@ -45,63 +44,61 @@ function App() {
     }, [dispatch]);
 
     return (
-        <Provider store={store}>
-            <Router>
-                <div className="app">
-                    <Header />
-                    <NotificationHandler />
-                    <main>
-                        <Routes>
-                            <Route path="/" element={<HomePage />} />
-                            <Route path="/products" element={<ProductPage />} />
-                            <Route path="/products/:productId" element={<ProductDetailPage />} />
-                            <Route path="/orders" element={<OrderPage />} />
-                            <Route path="/login" element={<LoginPage />} />
-                            <Route path="/register" element={<Register />} />
-                            <Route path="/profile" element={<ProfilePage />} />
-                            <Route path="/collaborations" element={<CollaborationPage />} />
-                            <Route path="/recipients" element={<RecipientPage />} />
-                            <Route path="/checkout" element={<CheckoutPage />} />
-                            <Route path="/orders/:orderId/payment" element={<PaymentPage />} />
-                            <Route path="/cart" element={<CartPage />} />
-                            <Route 
-                                path="/settlements" 
-                                element={
-                                    <PrivateRoute>
-                                        <SettlementManagementPage />
-                                    </PrivateRoute>
-                                } 
-                            />
-                            <Route 
-                                path="/audit" 
-                                element={
-                                    <PrivateRoute requiredRole="admin">
-                                        <AuditManagementPage />
-                                    </PrivateRoute>
-                                } 
-                            />
-                            <Route 
-                                path="/audit/reports/:reportId" 
-                                element={
-                                    <PrivateRoute requiredRole="admin">
-                                        <AuditReportDetailPage />
-                                    </PrivateRoute>
-                                } 
-                            />
-                            <Route 
-                                path="/financial-reports" 
-                                element={
-                                    <PrivateRoute requiredRole="admin">
-                                        <FinancialReportPage />
-                                    </PrivateRoute>
-                                } 
-                            />
-                        </Routes>
-                    </main>
-                    <Footer />
-                </div>
-            </Router>
-        </Provider>
+        <Router>
+            <div className="app">
+                <Header />
+                <NotificationHandler />
+                <main>
+                    <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/products" element={<ProductPage />} />
+                        <Route path="/products/:productId" element={<ProductDetailPage />} />
+                        <Route path="/orders" element={<OrderPage />} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/collaborations" element={<CollaborationPage />} />
+                        <Route path="/recipients" element={<RecipientPage />} />
+                        <Route path="/checkout" element={<CheckoutPage />} />
+                        <Route path="/orders/:orderId/payment" element={<PaymentPage />} />
+                        <Route path="/cart" element={<CartPage />} />
+                        <Route 
+                            path="/settlements" 
+                            element={
+                                <PrivateRoute>
+                                    <SettlementManagementPage />
+                                </PrivateRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/audit" 
+                            element={
+                                <PrivateRoute requiredRole="admin">
+                                    <AuditManagementPage />
+                                </PrivateRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/audit/reports/:reportId" 
+                            element={
+                                <PrivateRoute requiredRole="admin">
+                                    <AuditReportDetailPage />
+                                </PrivateRoute>
+                            } 
+                        />
+                        <Route 
+                            path="/financial-reports" 
+                            element={
+                                <PrivateRoute requiredRole="admin">
+                                    <FinancialReportPage />
+                                </PrivateRoute>
+                            } 
+                        />
+                    </Routes>
+                </main>
+                <Footer />
+            </div>
+        </Router>
     );
 }
 

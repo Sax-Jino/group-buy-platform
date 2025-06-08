@@ -25,10 +25,15 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-export const socket = io('/collaboration', {
+export const socket = io('/socket.io', {
+    path: '/socket.io',
+    transports: ['websocket', 'polling'],
     auth: {
         token: localStorage.getItem('jwtToken')
-    }
+    },
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    timeout: 20000
 });
 
 socket.on('connect', () => {

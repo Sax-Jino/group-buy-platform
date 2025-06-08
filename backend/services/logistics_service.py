@@ -29,8 +29,15 @@ def update_tracking_status(order_id):
         logger.error(f'Failed to update tracking status for order {order_id}: {str(e)}')
 
 class LogisticsService:
-    def __init__(self):
-        self.api_key = current_app.config.get('AFTERSHIP_API_KEY')
+    def __init__(self, api_key=None):
+        # 支援外部傳入 api_key，否則於有 app context 時才存取 current_app
+        if api_key is not None:
+            self.api_key = api_key
+        else:
+            try:
+                self.api_key = current_app.config.get('AFTERSHIP_API_KEY')
+            except RuntimeError:
+                self.api_key = None
         if self.api_key:
             self.api = tracking.Client(
                 tracking.Configuration(
