@@ -36,8 +36,8 @@ def upgrade():
             # 建立唯一 superadmin
             session.execute(User.insert().values(
                 username='JackeyChen',
-                email='jackeychen@admin.com',
-                password_hash=generate_password_hash('JackeyChen@2025'),
+                email='JackeyChen@yahoo.com',
+                password_hash=generate_password_hash('Stark970922!'),
                 role='superadmin',
                 is_active=True,
                 created_at=sa.func.now()

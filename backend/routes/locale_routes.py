@@ -5,7 +5,7 @@ from flask_jwt_extended import jwt_required
 
 bp = Blueprint('locale', __name__)
 
-@babel.localeselector_function
+@babel.locale_selector
 def get_locale():
     # 嘗試從請求頭獲取語言設置
     if request.headers.get('Accept-Language'):
