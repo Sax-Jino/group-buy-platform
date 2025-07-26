@@ -6,7 +6,7 @@ from models.order import Order
 from models.commission import CommissionRecord
 from models.user import User
 from models.notification import Notification
-from utils.profit_calculator2 import ProfitCalculator
+from backend.utils.profit_calculator2 import ProfitCalculator
 from services.group_mom_service import GroupMomService
 
 class CommissionCalculationService:

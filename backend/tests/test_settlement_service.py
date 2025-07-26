@@ -104,7 +104,7 @@ class TestSettlementService(unittest.TestCase):
         mock_settlement.query.get.return_value = settlement
         
         # 測試撥款處理
-        result = SettlmentService.process_payment(1)
+        result = SettlementService.process_payment(1)
         self.assertTrue(result)
         self.assertEqual(settlement.status, 'paid')
         self.assertIsNotNone(settlement.paid_at)

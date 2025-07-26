@@ -2,7 +2,10 @@ from datetime import datetime
 from backend.extensions import db
 from backend.models.order import Order
 from backend.models.logistics_company import LogisticsCompany
-import aftership
+try:
+    from aftership import APIv4
+except ImportError:
+    APIv4 = None
 from flask import current_app
 import logging
 from celery import shared_task
@@ -39,7 +42,7 @@ class LogisticsService:
                 self.api_key = None
         
         if self.api_key:
-            self.api = aftership.APIv4(self.api_key)
+            self.api = APIv4(self.api_key) if APIv4 else None
         else:
             self.api = None
             logger.warning('AfterShip API key not configured')

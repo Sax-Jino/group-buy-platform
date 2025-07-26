@@ -103,13 +103,12 @@ class Order(db.Model):
     
     def calculate_profits(self):
         """計算訂單的所有利潤分配"""
-        from utils.profit_calculator import ProfitCalculator
+        from backend.utils.profit_calculator import ProfitCalculator
         
         # 計算基本利潤
         basic_profits = ProfitCalculator.calculate_order_profit(
             selling_price=self.total_price,
-            cost=self.cost,
-            has_referrer_qualification=self.referrer_qualified
+            cost=self.cost
         )
         
         # 計算團媽分潤

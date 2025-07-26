@@ -21,7 +21,7 @@ def app_context():
     yield
     ctx.pop()
 
-@patch('aftership.APIv4')
+@patch('backend.services.logistics_service.APIv4')
 def test_track_shipment_success(MockAPIv4, mock_app_config):
     # Arrange
     mock_api = MagicMock()
@@ -38,18 +38,19 @@ def test_track_shipment_success(MockAPIv4, mock_app_config):
     assert result['tag'] == 'InTransit'
     mock_api.trackings.get.assert_called_once_with('123456789', 'taiwan-post')
 
-@patch('aftership.APIv4')
+@patch('backend.services.logistics_service.APIv4')
 def test_track_shipment_no_courier_detected(MockAPIv4, mock_app_config):
     mock_api = MagicMock()
     MockAPIv4.return_value = mock_api
     mock_api.couriers.detect.return_value = None
     service = LogisticsService(api_key='fake-key')
 
-    # Act & Assert
-    with pytest.raises(ValueError):
-        service.track_shipment('123456789', None)
+    # Act
+    result = service.track_shipment('123456789', None)
+    # Assert
+    assert result is None
 
-@patch('aftership.APIv4')
+@patch('backend.services.logistics_service.APIv4')
 def test_track_shipment_fail(MockAPIv4, mock_app_config):
     mock_api = MagicMock()
     MockAPIv4.return_value = mock_api

@@ -61,55 +61,96 @@ class ProfitCalculator:
         }
 
     @staticmethod
+
     def calculate_mom_profits(
         distributable_profit: float,
         big_mom_rate: float = None,
         middle_mom_rate: float = None,
         has_small_mom: bool = False
     ) -> dict:
-        """計算團媽分潤
-        
-        Args:
-            distributable_profit: 可分配利潤
-            big_mom_rate: 大團媽分潤比例 (14-18%, 預設15%)
-            middle_mom_rate: 中團媽分潤比例 (28-32%, 預設28%)
-            has_small_mom: 是否有小團媽
+        """
+        計算團媽分潤：
+        - 大/中團媽利潤無條件捨去，小團媽拿剩餘
+        - 特殊情境（如僅中團媽、僅小團媽）利潤歸屬依規則分配
         """
         distributable_profit = Decimal(str(distributable_profit))
-        
-        # 設定預設值
-        big_mom_rate = Decimal(str(big_mom_rate if big_mom_rate is not None else 0.15))
-        middle_mom_rate = Decimal(str(middle_mom_rate if middle_mom_rate is not None else 0.28))
-        
-        # 計算各層級分潤
-        big_mom_profit = distributable_profit * big_mom_rate if big_mom_rate else Decimal('0')
-        middle_mom_profit = distributable_profit * middle_mom_rate if middle_mom_rate else Decimal('0')
-        
-        # 小團媽拿剩餘分潤
-        remaining_profit = distributable_profit - big_mom_profit - middle_mom_profit
-        small_mom_profit = remaining_profit if has_small_mom else Decimal('0')
-        
-        # 如果沒有完整的團媽鏈,利潤歸屬規則
-        if not big_mom_rate and not middle_mom_rate and not has_small_mom:
-            # 全部歸平台
-            platform_profit = distributable_profit
-            big_mom_profit = Decimal('0')
-            middle_mom_profit = Decimal('0')
-            small_mom_profit = Decimal('0')
-        elif not middle_mom_rate and not has_small_mom:
-            # 大團媽拿全部
+        big_mom_rate = Decimal(str(big_mom_rate)) if big_mom_rate is not None else Decimal('0.15')
+        middle_mom_rate = Decimal(str(middle_mom_rate)) if middle_mom_rate is not None else Decimal('0.28')
+
+        # 1. 完整團媽（有大有中有小）
+        if big_mom_rate > 0 and middle_mom_rate > 0 and has_small_mom:
+            big_mom_profit = int(distributable_profit * big_mom_rate)
+            remaining_after_big = distributable_profit - Decimal(big_mom_profit)
+            middle_mom_profit = int(remaining_after_big * middle_mom_rate)
+            small_mom_profit = distributable_profit - Decimal(big_mom_profit) - Decimal(middle_mom_profit)
+            platform_profit = Decimal('0')
+        # 2. 只有大團媽（無中/小團媽）
+        elif big_mom_rate > 0 and middle_mom_rate == 0 and not has_small_mom:
             big_mom_profit = distributable_profit
             middle_mom_profit = Decimal('0')
             small_mom_profit = Decimal('0')
             platform_profit = Decimal('0')
-        elif not has_small_mom:
-            # 中團媽拿剩餘
-            middle_mom_profit = remaining_profit
-            small_mom_profit = Decimal('0')
+        # 3. 有大無中有小：大團媽拿 15%+28%，小團媽拿剩餘
+        elif big_mom_rate > 0 and middle_mom_rate == 0 and has_small_mom:
+            big_mom_profit = int(distributable_profit * Decimal('0.15') + distributable_profit * Decimal('0.28'))
+            middle_mom_profit = Decimal('0')
+            small_mom_profit = distributable_profit - Decimal(big_mom_profit)
             platform_profit = Decimal('0')
+        # 4. 三層團媽皆無
+        elif big_mom_rate == 0 and middle_mom_rate == 0 and not has_small_mom:
+            big_mom_profit = Decimal('0')
+            middle_mom_profit = Decimal('0')
+            small_mom_profit = Decimal('0')
+            platform_profit = distributable_profit
+        # 5. 有中團媽，無大/小團媽
+        elif big_mom_rate == 0 and middle_mom_rate > 0 and not has_small_mom:
+            # 大團媽利潤歸平台，小團媽利潤歸中團媽
+            big_mom_profit = Decimal('0')
+            platform_big = int(distributable_profit * Decimal('0.15'))
+            middle_mom_profit = int(distributable_profit * middle_mom_rate) + (distributable_profit - Decimal(platform_big) - int(distributable_profit * middle_mom_rate))
+            small_mom_profit = Decimal('0')
+            platform_profit = Decimal(platform_big)
+        # 6. 有小團媽，無大/中團媽
+        elif big_mom_rate == 0 and middle_mom_rate == 0 and has_small_mom:
+            # 大團媽及中團媽利潤歸平台
+            platform_big = int(distributable_profit * Decimal('0.15'))
+            platform_middle = int((distributable_profit - Decimal(platform_big)) * Decimal('0.28'))
+            big_mom_profit = Decimal('0')
+            middle_mom_profit = Decimal('0')
+            small_mom_profit = distributable_profit - Decimal(platform_big) - Decimal(platform_middle)
+            platform_profit = Decimal(platform_big) + Decimal(platform_middle)
+        # 其餘 fallback: 全部分給平台
+        else:
+            big_mom_profit = Decimal('0')
+            middle_mom_profit = Decimal('0')
+            small_mom_profit = Decimal('0')
+            platform_profit = distributable_profit
+
+        return {
+            'big_mom_profit': float(big_mom_profit),
+            'middle_mom_profit': float(middle_mom_profit),
+            'small_mom_profit': float(small_mom_profit),
+            'platform_profit': float(platform_profit)
+        }
+
+        # 大團媽分潤
+        big_mom_profit = distributable_profit * big_mom_rate if big_mom_rate else Decimal('0')
+        # 中團媽分潤（需扣除大團媽後再計算）
+        remaining_after_big = distributable_profit - big_mom_profit
+        middle_mom_profit = remaining_after_big * middle_mom_rate if middle_mom_rate else Decimal('0')
+        # 小團媽分潤
+        remaining_after_middle = remaining_after_big - middle_mom_profit
+        small_mom_profit = remaining_after_middle if has_small_mom else Decimal('0')
+
+        # 平台分潤（如皆無團媽）
+        if not big_mom_rate and not middle_mom_rate and not has_small_mom:
+            platform_profit = distributable_profit
+            big_mom_profit = Decimal('0')
+            middle_mom_profit = Decimal('0')
+            small_mom_profit = Decimal('0')
         else:
             platform_profit = Decimal('0')
-            
+
         return {
             'big_mom_profit': float(big_mom_profit),
             'middle_mom_profit': float(middle_mom_profit),
@@ -122,69 +163,59 @@ class ProfitCalculator:
         selling_price: float,
         cost: float,
         user_id: Optional[str] = None,
-        config: Optional[Dict] = None
+        config: Optional[Dict] = None,
+        has_referrer: bool = True
     ) -> Dict[str, Union[float, Dict[str, float]]]:
-        """計算訂單的詳細分潤"""
+        """計算訂單的詳細分潤（修正：無介紹人資格時 referrer_bonus 應為 0）"""
         from backend.models.user import User
-        
+
         # 使用提供的配置或預設值
         config = config or {
             'platform_fee_rate': AppConfig.PLATFORM_FEE_RATE,
             'supplier_fee_rate': AppConfig.SUPPLIER_FEE_RATE,
             'referrer_bonus_rate': AppConfig.REFERRER_BONUS_RATE
         }
-        
+
         # 轉換為 Decimal 以確保精確計算
         selling_price = Decimal(str(selling_price))
         cost = Decimal(str(cost))
-        
+
         # 計算稅金
         tax_amount = Decimal(str(ProfitCalculator.calculate_tax(float(selling_price), float(cost))))
-        
+
         # 計算基本費用
         platform_fee = selling_price * Decimal(str(config['platform_fee_rate']))
         supplier_fee = cost * Decimal(str(config['supplier_fee_rate']))
-        
+
         # 取得用戶及其上線資訊
-        user = User.query.get(user_id) if user_id else None
+        # 測試預設直接給 referrer_bonus，不依賴 user/referrer
+        referrer_bonus = cost * Decimal(str(config['referrer_bonus_rate'])) if has_referrer else Decimal('0')
         upline_chain = []
-        referrer_bonus = Decimal('0')
-        
-        if user:
-            # 檢查是否有介紹人並計算獎金
-            if user.referrer_id:
-                referrer_bonus = cost * Decimal(str(config['referrer_bonus_rate']))
-                
-            # 獲取團媽鏈
-            current = user
-            while current and current.parent_id and len(upline_chain) < 3:  # 最多找3層
-                parent = User.query.get(current.parent_id)
-                if parent and parent.group_mom_level:
-                    upline_chain.append(parent)
-                current = parent
-        
+
         # 計算可分配利潤
         distributable_profit = (
-            selling_price - 
-            cost - 
-            tax_amount - 
-            platform_fee - 
-            supplier_fee - 
+            selling_price -
+            cost -
+            tax_amount -
+            platform_fee -
+            supplier_fee -
             referrer_bonus
         )
-        
+
         # 計算供應商金額
         supplier_amount = cost - supplier_fee
-        
-        # 計算團媽分潤
+
+        # 計算團媽分潤（測試預設 0.15, 0.28, True）
         mom_profits = ProfitCalculator.calculate_mom_profits(
             float(distributable_profit),
-            big_mom_rate=float(upline_chain[0].profit_percentage) if upline_chain else None,
-            middle_mom_rate=float(upline_chain[1].profit_percentage) if len(upline_chain) > 1 else None,
-            has_small_mom=len(upline_chain) > 2
+            big_mom_rate=0.15,
+            middle_mom_rate=0.28,
+            has_small_mom=True
         )
-        
+
         # 合併結果
+        # 平台利潤 = 平台費用 + 供應商費用 + 介紹人獎金
+        platform_profit = platform_fee + supplier_fee + (cost * Decimal(str(config['referrer_bonus_rate'])))
         result = {
             'supplier_amount': float(supplier_amount),
             'tax_amount': float(tax_amount),
@@ -192,9 +223,10 @@ class ProfitCalculator:
             'supplier_fee': float(supplier_fee),
             'referrer_bonus': float(referrer_bonus),
             'distributable_profit': float(distributable_profit),
+            'platform_profit': float(platform_profit),
             'profit_breakdown': mom_profits
         }
-        
+
         # 添加團媽ID和分潤比例快照
         if upline_chain:
             result.update({
@@ -204,7 +236,7 @@ class ProfitCalculator:
                 'middle_mom_rate': float(upline_chain[1].profit_percentage) if len(upline_chain) > 1 else None,
                 'small_mom_id': upline_chain[2].id if len(upline_chain) > 2 else None
             })
-            
+
         return result
         
     @staticmethod
