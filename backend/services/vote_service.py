@@ -1,11 +1,11 @@
-from extensions import db
-from models.collaboration_vote import CollaborationVote
-from models.collaboration_group import CollaborationGroup
-from models.collaboration_investment import CollaborationInvestment
-from models.collaboration_proposal import CollaborationProposal
-from config import Config
+from backend.extensions import db
+from backend.models.collaboration_vote import CollaborationVote
+from backend.models.collaboration_group import CollaborationGroup
+from backend.models.collaboration_investment import CollaborationInvestment
+from backend.models.collaboration_proposal import CollaborationProposal
+from backend.config import Config
 from flask import current_app
-from services.notification_service import NotificationService
+from backend.services.notification_service import NotificationService
 
 class VoteService:
     def cast_vote(self, group_id, user_id, data):

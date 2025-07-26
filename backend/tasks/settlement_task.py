@@ -2,9 +2,9 @@ import schedule
 import time
 from datetime import datetime, timedelta
 from flask import current_app
-from extensions import db
-from models.settlement import Settlement
-from services.settlement_service import SettlementService
+from backend.extensions import db
+from backend.models.settlement import Settlement
+from backend.services.settlement_service import SettlementService
 from config import Config
 
 def schedule_settlement_tasks(app):

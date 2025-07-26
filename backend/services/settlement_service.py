@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 from sqlalchemy import and_, or_
-from models.order import Order
-from models.settlement import Settlement, UnsettledOrder, SettlementStatement, SettlementItem
-from models.user import User
-from extensions import db
-from config import Config
-from utils.profit_calculator import ProfitCalculator
+from backend.models.order import Order
+from backend.models.settlement import Settlement, UnsettledOrder, SettlementStatement, SettlementItem
+from backend.models.user import User
+from backend.extensions import db
+from backend.config import Config
+from backend.utils.profit_calculator import ProfitCalculator
 
 class SettlementService:
     @staticmethod

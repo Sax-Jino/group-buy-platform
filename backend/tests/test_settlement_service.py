@@ -1,18 +1,20 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 import unittest
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
-from services.settlement_service import SettlementService
-from models.order import Order
-from models.settlement import Settlement, SettlementStatement
-from models.user import User
-from extensions import db
+from backend.services.settlement_service import SettlementService
+from backend.models.order import Order
+from backend.models.settlement import Settlement, SettlementStatement
+from backend.models.user import User
+from backend.extensions import db
 from backend.app import create_app
-from config import TestingConfig
+from backend.config import TestingConfig
 
 class TestSettlementService(unittest.TestCase):
     def setUp(self):
-        self.app = create_app()
-        self.app.config.from_object(TestingConfig)
+        self.app = create_app(TestingConfig)
         self.app_context = self.app.app_context()
         self.app_context.push()
         
@@ -37,7 +39,7 @@ class TestSettlementService(unittest.TestCase):
     def tearDown(self):
         self.app_context.pop()
 
-    @patch('services.settlement_service.datetime')
+    @patch('backend.services.settlement_service.datetime')
     def test_create_settlement_period(self, mock_datetime):
         """測試結算期別建立"""
         # 測試上半月
@@ -50,7 +52,7 @@ class TestSettlementService(unittest.TestCase):
         period = SettlementService.create_settlement_period()
         self.assertEqual(period, '202505b')
 
-    @patch('services.settlement_service.db.session')
+    @patch('backend.services.settlement_service.db.session')
     def test_process_paid_order(self, mock_session):
         """測試已付款訂單處理"""
         result = SettlementService.process_paid_order(self.order)
@@ -60,7 +62,7 @@ class TestSettlementService(unittest.TestCase):
         mock_session.add.assert_called_once()
         mock_session.commit.assert_called_once()
 
-    @patch('services.settlement_service.db.session')
+    @patch('backend.services.settlement_service.db.session')
     def test_generate_settlement_batch(self, mock_session):
         """測試生成結算批次"""
         # 模擬查詢結果
@@ -72,7 +74,7 @@ class TestSettlementService(unittest.TestCase):
         self.assertEqual(mock_session.add.call_count, 4)  # 1個供應商 + 3個團媽的結算記錄
         mock_session.commit.assert_called_once()
 
-    @patch('services.settlement_service.SettlementStatement')
+    @patch('backend.services.settlement_service.SettlementStatement')
     def test_confirm_statement(self, mock_statement):
         """測試確認對帳單"""
         # 模擬對帳單
@@ -92,7 +94,7 @@ class TestSettlementService(unittest.TestCase):
         result = SettlementService.confirm_statement(1, 'user1')
         self.assertFalse(result)
 
-    @patch('services.settlement_service.Settlement')
+    @patch('backend.services.settlement_service.Settlement')
     def test_process_payment(self, mock_settlement):
         """測試處理撥款"""
         # 模擬結算記錄
@@ -107,7 +109,7 @@ class TestSettlementService(unittest.TestCase):
         self.assertEqual(settlement.status, 'paid')
         self.assertIsNotNone(settlement.paid_at)
 
-    @patch('services.settlement_service.db.session')
+    @patch('backend.services.settlement_service.db.session')
     def test_get_platform_summary(self, mock_session):
         """測試獲取平台總覽"""
         # 模擬查詢結果

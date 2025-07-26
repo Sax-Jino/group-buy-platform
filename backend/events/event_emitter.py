@@ -1,4 +1,4 @@
-from extensions import event_emitter
+from backend.extensions import event_emitter
 
 def emit_event(event_name, data=None):
     """

@@ -1,64 +1,60 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 import pytest
 from unittest.mock import patch, MagicMock
-from services.logistics_service import LogisticsService
+from backend.services.logistics_service import LogisticsService
 from backend.app import create_app
-from config import TestingConfig
+from backend.config import TestingConfig
 
 @pytest.fixture
 def mock_app_config(monkeypatch):
     class MockApp:
         config = {'AFTERSHIP_API_KEY': 'fake-key'}
-    monkeypatch.setattr('services.logistics_service.current_app', MockApp())
+    monkeypatch.setattr('backend.services.logistics_service.current_app', MockApp())
 
 @pytest.fixture(scope='module', autouse=True)
 def app_context():
-    app = create_app()
-    app.config.from_object(TestingConfig)
+    app = create_app(TestingConfig)
     ctx = app.app_context()
     ctx.push()
     yield
     ctx.pop()
 
-@patch('services.logistics_service.tracking')
-def test_track_shipment_success(mock_tracking, mock_app_config):
+@patch('aftership.APIv4')
+def test_track_shipment_success(MockAPIv4, mock_app_config):
     # Arrange
-    mock_client = MagicMock()
-    mock_tracking.Client.return_value = mock_client
-    mock_tracking.Configuration.return_value = MagicMock()
-    mock_client.get_tracking.return_value = {'tag': 'InTransit', 'checkpoints': []}
-    service = LogisticsService()
-    service.api = mock_client
+    mock_api = MagicMock()
+    MockAPIv4.return_value = mock_api
+    mock_tracking_obj = MagicMock()
+    mock_tracking_obj.tracking = {'tag': 'InTransit', 'checkpoints': []}
+    mock_api.trackings.get.return_value = mock_tracking_obj
+    service = LogisticsService(api_key='fake-key')
 
     # Act
     result = service.track_shipment('123456789', 'taiwan-post')
 
     # Assert
     assert result['tag'] == 'InTransit'
-    mock_client.get_tracking.assert_called_once_with(tracking_number='123456789', slug='taiwan-post')
+    mock_api.trackings.get.assert_called_once_with('123456789', 'taiwan-post')
 
-@patch('services.logistics_service.tracking')
-def test_track_shipment_no_courier_detected(mock_tracking, mock_app_config):
-    mock_client = MagicMock()
-    mock_tracking.Client.return_value = mock_client
-    mock_tracking.Configuration.return_value = MagicMock()
-    mock_client.detect.return_value = {'couriers': [{'slug': 'taiwan-post'}]}
-    mock_client.get_tracking.return_value = {'tag': 'InTransit', 'checkpoints': []}
-    service = LogisticsService()
-    service.api = mock_client
+@patch('aftership.APIv4')
+def test_track_shipment_no_courier_detected(MockAPIv4, mock_app_config):
+    mock_api = MagicMock()
+    MockAPIv4.return_value = mock_api
+    mock_api.couriers.detect.return_value = None
+    service = LogisticsService(api_key='fake-key')
 
-    result = service.track_shipment('123456789')
-    assert result['tag'] == 'InTransit'
-    mock_client.detect.assert_called_once_with('123456789')
-    mock_client.get_tracking.assert_called_once_with(tracking_number='123456789', slug='taiwan-post')
+    # Act & Assert
+    with pytest.raises(ValueError):
+        service.track_shipment('123456789', None)
 
-@patch('services.logistics_service.tracking')
-def test_track_shipment_fail(mock_tracking, mock_app_config):
-    mock_client = MagicMock()
-    mock_tracking.Client.return_value = mock_client
-    mock_tracking.Configuration.return_value = MagicMock()
-    mock_client.get_tracking.side_effect = Exception('API error')
-    service = LogisticsService()
-    service.api = mock_client
+@patch('aftership.APIv4')
+def test_track_shipment_fail(MockAPIv4, mock_app_config):
+    mock_api = MagicMock()
+    MockAPIv4.return_value = mock_api
+    mock_api.trackings.get.side_effect = Exception('API error')
+    service = LogisticsService(api_key='fake-key')
 
     result = service.track_shipment('123456789', 'taiwan-post')
     assert result is None

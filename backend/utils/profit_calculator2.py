@@ -1,9 +1,9 @@
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Optional, Dict, Union
 from datetime import datetime
-from extensions import db
-from models.group_mom_level import GroupMomLevel
-from config import Config as AppConfig
+from backend.extensions import db
+from backend.models.group_mom_level import GroupMomLevel
+from backend.config import Config as AppConfig
 
 class ProfitCalculator:
     @staticmethod
@@ -125,7 +125,7 @@ class ProfitCalculator:
         config: Optional[Dict] = None
     ) -> Dict[str, Union[float, Dict[str, float]]]:
         """計算訂單的詳細分潤"""
-        from models.user import User
+        from backend.models.user import User
         
         # 使用提供的配置或預設值
         config = config or {

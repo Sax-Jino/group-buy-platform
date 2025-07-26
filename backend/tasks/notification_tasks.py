@@ -1,7 +1,7 @@
 from celery import shared_task
 from typing import List
-from services.enhanced_notification_service import EnhancedNotificationService
-from models.notification import Notification
+from backend.services.enhanced_notification_service import EnhancedNotificationService
+from backend.models.notification import Notification
 import logging
 
 logger = logging.getLogger(__name__)
@@ -63,7 +63,7 @@ def cleanup_old_notifications():
     每天執行一次
     """
     from datetime import datetime, timedelta
-    from extensions import db
+    from backend.extensions import db
 
     try:
         # 刪除90天前的已讀通知

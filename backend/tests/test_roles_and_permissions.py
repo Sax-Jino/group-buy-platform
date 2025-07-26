@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
-from models.user import User
-from services.group_mom_service import GroupMomService
-from services.supplier_assistant_service import SupplierAssistantService
+from backend.models.user import User
+from backend.services.group_mom_service import GroupMomService
+from backend.services.supplier_assistant_service import SupplierAssistantService
 
 class TestRolesAndPermissions(unittest.TestCase):
 

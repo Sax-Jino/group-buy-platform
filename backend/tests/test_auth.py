@@ -1,30 +1,35 @@
 import sys
 import os
 import unittest
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from unittest.mock import patch, MagicMock
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from backend.app import create_app
-from extensions import db
-from services.auth_service import AuthService
-from config import TestingConfig
+from backend.extensions import db
+from backend.services.auth_service import AuthService
+from backend.config import TestingConfig
 
 class TestAuthSuperadmin(unittest.TestCase):
-    def setUp(self):
-        self.app = create_app()
-        self.app.config.from_object(TestingConfig)
-        self.app.config['TESTING'] = True
-        self.app_context = self.app.app_context()
-        self.app_context.push()
+    @classmethod
+    def setUpClass(cls):
+        db.Model.metadata.clear()
+        cls.app = create_app(TestingConfig)
+        cls.app_context = cls.app.app_context()
+        cls.app_context.push()
         db.create_all()
-        self.auth_service = AuthService()
-        
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         db.session.remove()
         db.drop_all()
-        self.app_context.pop()
+        cls.app_context.pop()
+
+    def setUp(self):
+        self.auth_service = AuthService()
+
+    def tearDown(self):
+        db.session.rollback()
 
     # 完全 mock AuthService.register 方法內部使用的 User 類別
-    @patch('services.auth_service.User')
+    @patch('backend.services.auth_service.User')
     def test_superadmin_register_unique(self, MockUser):
         # 設置 mock 行為
         MockUser.is_superadmin_unique.return_value = False
@@ -51,7 +56,7 @@ class TestAuthSuperadmin(unittest.TestCase):
         # 驗證錯誤消息
         self.assertIn("已存在", str(context.exception))
 
-    @patch('services.auth_service.User')
+    @patch('backend.services.auth_service.User')
     def test_superadmin_register_only_jackeychen(self, MockUser):
         # 設置 mock 行為 - 系統沒有 superadmin
         MockUser.is_superadmin_unique.return_value = True
@@ -78,8 +83,8 @@ class TestAuthSuperadmin(unittest.TestCase):
         # 驗證錯誤消息
         self.assertIn("JackeyChen", str(context.exception))
 
-    @patch('services.auth_service.User')
-    @patch('services.auth_service.db')
+    @patch('backend.services.auth_service.User')
+    @patch('backend.services.auth_service.db')
     def test_superadmin_register_success(self, mock_db, MockUser):
         # 設置 mock 行為 - 系統沒有 superadmin
         MockUser.is_superadmin_unique.return_value = True

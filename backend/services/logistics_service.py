@@ -1,7 +1,7 @@
 from datetime import datetime
-from extensions import db
-from models.order import Order
-from models.logistics_company import LogisticsCompany
+from backend.extensions import db
+from backend.models.order import Order
+from backend.models.logistics_company import LogisticsCompany
 import aftership
 from flask import current_app
 import logging

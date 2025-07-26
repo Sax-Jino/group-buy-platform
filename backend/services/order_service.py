@@ -1,9 +1,9 @@
-from extensions import db
-from models.order import Order
-from models.product import Product
-from models.user import User
-from models.company_account import CompanyAccount
-from models.settlement import UnsettledOrder
+from backend.extensions import db
+from backend.models.order import Order
+from backend.models.product import Product
+from backend.models.user import User
+from backend.models.company_account import CompanyAccount
+from backend.models.settlement import UnsettledOrder
 from datetime import datetime, timedelta
 
 class OrderService:

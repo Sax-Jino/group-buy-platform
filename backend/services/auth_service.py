@@ -1,5 +1,5 @@
-from extensions import db
-from models.user import User
+from backend.extensions import db
+from backend.models.user import User
 from werkzeug.security import generate_password_hash, check_password_hash
 
 class AuthService:
@@ -10,7 +10,6 @@ class AuthService:
         
         # 若註冊 superadmin，強制唯一且帳號為 JackeyChen
         if data.get('role') == 'superadmin':
-            from models.user import User
             if not (data.get('username') == 'JackeyChen'):
                 raise ValueError("SUPERADMIN 僅允許帳號 JackeyChen")
             if not User.is_superadmin_unique() or User.query.filter_by(role='superadmin').count() > 0:

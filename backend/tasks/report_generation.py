@@ -1,10 +1,12 @@
 from datetime import datetime
 from celery import shared_task
-from models.audit import AuditReport
-from services.financial_analysis_service import FinancialAnalysisService
-from services.settlement_optimization_service import SettlementOptimizationService
-from services.export_service import ExportService
-from services.notification_service import NotificationService
+from backend.models.audit import AuditReport
+from backend.extensions import db
+from datetime import timedelta
+from backend.services.financial_analysis_service import FinancialAnalysisService
+from backend.services.settlement_optimization_service import SettlementOptimizationService
+from backend.services.export_service import ExportService
+from backend.services.notification_service import NotificationService
 
 @shared_task
 def generate_monthly_financial_report():

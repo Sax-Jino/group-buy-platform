@@ -1,9 +1,10 @@
-from extensions import db
+from backend.extensions import db
 from datetime import datetime
 from sqlalchemy.dialects.postgresql import JSON
 
 class PlatformBalance(db.Model):
     __tablename__ = 'platform_balance'
+    __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
     period = db.Column(db.String(8), nullable=False)
     current_platform_balance = db.Column(db.Float, nullable=False)

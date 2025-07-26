@@ -1,10 +1,10 @@
 from celery import shared_task
 from datetime import datetime, timedelta
-from services.group_mom_service import GroupMomService
-from services.commission_calculation_service import CommissionCalculationService
-from models.user import User
-from models.order import Order
-from extensions import db
+from backend.services.group_mom_service import GroupMomService
+from backend.services.commission_calculation_service import CommissionCalculationService
+from backend.models.user import User
+from backend.models.order import Order
+from backend.extensions import db
 import logging
 
 logger = logging.getLogger(__name__)

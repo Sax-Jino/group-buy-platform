@@ -1,10 +1,18 @@
-from extensions import db
+from backend.extensions import db
 from datetime import datetime
 from sqlalchemy import Index
 from sqlalchemy.dialects.postgresql import JSON
 
 class Order(db.Model):
     __tablename__ = 'orders'
+    __table_args__ = (
+        Index('idx_orders_status_created', 'status', 'created_at'),
+        Index('idx_orders_mom_chain', 'big_mom_id', 'middle_mom_id', 'small_mom_id'),
+        Index('idx_orders_settled', 'settled_at', 'status'),
+        Index('idx_orders_user_status', 'user_id', 'status'),
+        Index('idx_orders_referrer', 'referrer_id', 'referrer_qualified'),
+        {'extend_existing': True}
+    )
     
     # 基本訂單信息
     id = db.Column(db.Integer, primary_key=True)
@@ -91,14 +99,7 @@ class Order(db.Model):
     small_mom = db.relationship('User', foreign_keys=[small_mom_id])
     referrer = db.relationship('User', foreign_keys=[referrer_id])
     
-    # 添加索引
-    __table_args__ = (
-        Index('idx_orders_status_created', 'status', 'created_at'),
-        Index('idx_orders_mom_chain', 'big_mom_id', 'middle_mom_id', 'small_mom_id'),
-        Index('idx_orders_settled', 'settled_at', 'status'),
-        Index('idx_orders_user_status', 'user_id', 'status'),
-        Index('idx_orders_referrer', 'referrer_id', 'referrer_qualified'),
-    )
+    # 添加索引（已合併至 __table_args__ 上方）
     
     def calculate_profits(self):
         """計算訂單的所有利潤分配"""

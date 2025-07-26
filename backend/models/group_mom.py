@@ -1,5 +1,5 @@
 from datetime import datetime
-from extensions import db
+from backend.extensions import db
 
 class GroupMomLevel(db.Model):
     __tablename__ = 'group_mom_levels'

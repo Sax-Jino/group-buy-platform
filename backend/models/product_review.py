@@ -1,7 +1,8 @@
-from extensions import db
+from backend.extensions import db
 from datetime import datetime
 
 class ProductReview(db.Model):
+    __table_args__ = {'extend_existing': True}
     __tablename__ = 'product_reviews'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -17,6 +18,7 @@ class ProductReview(db.Model):
     user = db.relationship('User', backref=db.backref('product_reviews', lazy='dynamic'))
 
 class ProductQA(db.Model):
+    __table_args__ = {'extend_existing': True}
     __tablename__ = 'product_qa'
     
     id = db.Column(db.Integer, primary_key=True)

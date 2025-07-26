@@ -1,10 +1,10 @@
 from typing import Optional, Dict, Any, List
 from datetime import datetime
-from extensions import db, socketio, mail
-from models.notification import Notification
-from models.order import Order
-from models.user import User
-from events.event_emitter import emit_event
+from backend.extensions import db, socketio, mail
+from backend.models.notification import Notification
+from backend.models.order import Order
+from backend.models.user import User
+from backend.events.event_emitter import emit_event
 from flask_mail import Message
 from flask import current_app
 import requests

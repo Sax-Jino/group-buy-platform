@@ -1,8 +1,9 @@
-from extensions import db
+from backend.extensions import db
 from datetime import datetime
 
 class Recipient(db.Model):
     __tablename__ = 'recipients'
+    __table_args__ = {'extend_existing': True}
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)

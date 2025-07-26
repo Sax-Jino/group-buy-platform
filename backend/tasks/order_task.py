@@ -2,11 +2,11 @@ import schedule
 import time
 from datetime import datetime, timedelta
 from flask import current_app
-from extensions import db
-from models.order import Order
-from models.user import User
-from services.notification_service import NotificationService
-from services.order_service import OrderService
+from backend.extensions import db
+from backend.models.order import Order
+from backend.models.user import User
+from backend.services.notification_service import NotificationService
+from backend.services.order_service import OrderService
 
 def check_unpaid_orders(app):
     """檢查未付款訂單並發送提醒或取消訂單"""

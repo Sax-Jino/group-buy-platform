@@ -1,6 +1,6 @@
-from extensions import db
-from models.supplier_assistant import SupplierAssistant
-from models.user import User
+from backend.extensions import db
+from backend.models.supplier_assistant import SupplierAssistant
+from backend.models.user import User
 from werkzeug.security import generate_password_hash
 import uuid
 from datetime import datetime

@@ -1,12 +1,14 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 import unittest
-from utils.profit_calculator import ProfitCalculator
-from config import Config, TestingConfig
+from backend.utils.profit_calculator import ProfitCalculator
+from backend.config import Config, TestingConfig
 from backend.app import create_app
 
 class TestProfitCalculator(unittest.TestCase):
     def setUp(self):
-        self.app = create_app()
-        self.app.config.from_object(TestingConfig)
+        self.app = create_app(TestingConfig)
         self.app_context = self.app.app_context()
         self.app_context.push()
         # 測試資料
