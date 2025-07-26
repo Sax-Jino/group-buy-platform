@@ -6,12 +6,13 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from backend.app import create_app
 from extensions import db
 from services.auth_service import AuthService
+from config import TestingConfig
 
 class TestAuthSuperadmin(unittest.TestCase):
     def setUp(self):
         self.app = create_app()
+        self.app.config.from_object(TestingConfig)
         self.app.config['TESTING'] = True
-        self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
         self.app_context = self.app.app_context()
         self.app_context.push()
         db.create_all()

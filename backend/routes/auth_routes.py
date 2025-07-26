@@ -7,7 +7,7 @@ bp = Blueprint('auth_routes', __name__)
 
 auth_service = AuthService()
 
-@bp.route('/register', methods=['POST'])
+@bp.route('/api/auth/register', methods=['POST'])
 @csrf.exempt
 def register():
     data = request.get_json(silent=True) or {}
@@ -17,7 +17,7 @@ def register():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-@bp.route('/login', methods=['POST'])
+@bp.route('/api/auth/login', methods=['POST'])
 @csrf.exempt
 def login():
     data = request.get_json(silent=True) or {}

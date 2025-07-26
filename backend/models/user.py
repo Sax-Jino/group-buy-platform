@@ -1,6 +1,7 @@
 from extensions import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from .commission_record import CommissionRecord
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -19,12 +20,14 @@ class User(db.Model):
     group_mom_approved_at = db.Column(db.DateTime)
     group_mom_fee_paid_until = db.Column(db.DateTime)  # 團媽會費有效期
     supplier_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # 供應商副手關聯的供應商
-    permissions = db.Column(db.JSON)  # 供應商副手的權限設定
-    
-    # 關聯
+    permissions = db.Column(db.JSON)  # 供應商副手的權限設定    # 關聯
     referrer = db.relationship('User', remote_side=[id], backref='referrals', foreign_keys=[referrer_id])
-    supplier = db.relationship('User', remote_side=[id], backref='assistants', foreign_keys=[supplier_id])
-    orders = db.relationship('Order', backref='user', lazy=True)
+    supplier = db.relationship('User', remote_side=[id], backref='assistants', foreign_keys=[supplier_id])    # 訂單關聯
+    orders = db.relationship('Order', foreign_keys='[Order.user_id]', backref=db.backref('buyer', lazy=True))
+    big_mom_orders = db.relationship('Order', foreign_keys='[Order.big_mom_id]', backref=db.backref('big_mom_user', lazy=True))
+    middle_mom_orders = db.relationship('Order', foreign_keys='[Order.middle_mom_id]', backref=db.backref('middle_mom_user', lazy=True))
+    small_mom_orders = db.relationship('Order', foreign_keys='[Order.small_mom_id]', backref=db.backref('small_mom_user', lazy=True))
+    referred_orders = db.relationship('Order', foreign_keys='[Order.referrer_id]', backref=db.backref('referrer_user', lazy=True))
     commission_records = db.relationship('CommissionRecord', backref='user', lazy=True)
 
     @property

@@ -4,10 +4,19 @@ import unittest
 from unittest.mock import patch, MagicMock
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from services.auth_service import AuthService
+from config import TestingConfig
+from backend.app import create_app
 
 class TestAuthSuperadmin(unittest.TestCase):
     def setUp(self):
+        self.app = create_app()
+        self.app.config.from_object(TestingConfig)
+        self.app_context = self.app.app_context()
+        self.app_context.push()
         self.auth_service = AuthService()
+
+    def tearDown(self):
+        self.app_context.pop()
 
     # 完全 mock AuthService.register 方法內部使用的 User 類別
     @patch('services.auth_service.User')

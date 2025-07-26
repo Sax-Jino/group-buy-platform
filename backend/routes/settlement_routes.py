@@ -7,7 +7,7 @@ bp = Blueprint('settlement_routes', __name__)
 
 settlement_service = SettlementService()
 
-@bp.route('', methods=['GET'])
+@bp.route('/api/settlements', methods=['GET'])
 @jwt_required()
 def get_settlements():
     user_id = get_jwt_identity()

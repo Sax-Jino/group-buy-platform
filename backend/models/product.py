@@ -28,6 +28,6 @@ class Product(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # 關聯
-    orders = db.relationship('Order', backref='product', lazy='dynamic')
+    orders = db.relationship('Order', backref='product_ref', lazy='dynamic')
     reviews = db.relationship('ProductReview', backref='product', lazy='dynamic')
     questions = db.relationship('ProductQA', backref='product', lazy='dynamic', foreign_keys='ProductQA.product_id')

@@ -7,7 +7,7 @@ bp = Blueprint('review_routes', __name__)
 
 review_service = ReviewService()
 
-@bp.route('', methods=['POST'])
+@bp.route('/api/reviews', methods=['POST'])
 @jwt_required()
 @csrf.exempt
 def create_review():

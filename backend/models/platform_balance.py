@@ -19,7 +19,7 @@ class PlatformBalance(db.Model):
     tax_payment_schedule = db.Column(JSON)
     refund_deduction_log = db.Column(JSON)
     settlement_date = db.Column(db.DateTime, nullable=False)
-    company_account_id = db.Column(db.Integer, db.ForeignKey('company_account.id'), nullable=False)
+    company_account_id = db.Column(db.Integer, db.ForeignKey('company_accounts.id'), nullable=False)
     is_payment_confirmed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

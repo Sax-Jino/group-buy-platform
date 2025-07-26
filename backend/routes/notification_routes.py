@@ -6,7 +6,7 @@ from extensions import csrf
 bp = Blueprint('notification_routes', __name__)
 notification_service = NotificationService()
 
-@bp.route('', methods=['GET'])
+@bp.route('/api/notifications', methods=['GET'])
 @jwt_required()
 def get_notifications():
     user_id = get_jwt_identity()

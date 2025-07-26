@@ -6,7 +6,7 @@ from extensions import csrf
 bp = Blueprint('product_routes', __name__)
 product_service = ProductService()
 
-@bp.route('', methods=['POST'])
+@bp.route('/api/products', methods=['POST'])
 @jwt_required()
 @csrf.exempt
 def create_product():
@@ -18,7 +18,7 @@ def create_product():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-@bp.route('', methods=['GET'])
+@bp.route('/api/products', methods=['GET'])
 def get_products():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
@@ -44,7 +44,7 @@ def get_products():
         "current_page": products.page
     }), 200
 
-@bp.route('/hot', methods=['GET'])
+@bp.route('/api/products/hot', methods=['GET'])
 def get_hot_products():
     """獲取熱賣商品"""
     limit = request.args.get('limit', 5, type=int)
@@ -62,7 +62,7 @@ def get_hot_products():
         "created_at": p.created_at.isoformat()
     } for p in products]), 200
 
-@bp.route('/category/<category>', methods=['GET'])
+@bp.route('/api/products/category/<category>', methods=['GET'])
 def get_products_by_category(category):
     """獲取分類商品"""
     page = request.args.get('page', 1, type=int)
@@ -94,7 +94,7 @@ def get_products_by_category(category):
         "current_page": paginated_products.page
     }), 200
 
-@bp.route('/<int:product_id>', methods=['GET'])
+@bp.route('/api/products/<int:product_id>', methods=['GET'])
 def get_product(product_id):
     """獲取商品詳情"""
     product = product_service.get_product_by_id(product_id)
@@ -123,7 +123,7 @@ def get_product(product_id):
         } for p in related_products]
     }), 200
 
-@bp.route('/<int:product_id>', methods=['PUT'])
+@bp.route('/api/products/<int:product_id>', methods=['PUT'])
 @jwt_required()
 @csrf.exempt
 def update_product(product_id):
@@ -135,7 +135,7 @@ def update_product(product_id):
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-@bp.route('/search', methods=['GET'])
+@bp.route('/api/products/search', methods=['GET'])
 def search_products():
     """搜尋商品"""
     query = request.args.get('q', '').strip()
@@ -174,7 +174,7 @@ def search_products():
         "current_page": result.page
     }), 200
 
-@bp.route('/search/suggestions', methods=['GET'])
+@bp.route('/api/products/search/suggestions', methods=['GET'])
 def get_search_suggestions():
     """獲取搜尋建議"""
     query = request.args.get('q', '').strip()

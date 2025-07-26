@@ -7,7 +7,7 @@ from datetime import datetime
 
 bp = Blueprint('user_routes', __name__)
 
-@bp.route('/profile', methods=['GET'])
+@bp.route('/api/users/profile', methods=['GET'])
 @jwt_required()
 def get_profile():
     """獲取用戶個人資料"""
@@ -17,7 +17,7 @@ def get_profile():
         return jsonify({"error": "User not found"}), 404
     return jsonify(user.to_dict()), 200
 
-@bp.route('/profile', methods=['PUT'])
+@bp.route('/api/users/profile', methods=['PUT'])
 @jwt_required()
 @csrf.exempt
 def update_profile():

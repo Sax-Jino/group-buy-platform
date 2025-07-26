@@ -12,7 +12,10 @@ WORKDIR /app
 # 複製依賴文件並安裝
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt && \
-    pip list
+    pip install --upgrade pip && \
+    pip install flask-login && \
+    pip list && \
+    python -c "from flask_login import LoginManager; print('Flask-Login successfully installed')"
 # 複製整個後端程式碼
 COPY . .
 

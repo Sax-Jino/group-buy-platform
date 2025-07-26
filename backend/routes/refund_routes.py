@@ -7,7 +7,7 @@ from extensions import csrf
 bp = Blueprint('refund_routes', __name__)
 refund_service = RefundService()
 
-@bp.route('', methods=['POST'])
+@bp.route('/api/refunds', methods=['POST'])
 @jwt_required()
 @csrf.exempt
 def create_refund():
@@ -23,7 +23,7 @@ def create_refund():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
-@bp.route('', methods=['GET'])
+@bp.route('/api/refunds', methods=['GET'])
 @jwt_required()
 def get_user_refunds():
     user_id = get_jwt_identity()

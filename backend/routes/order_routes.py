@@ -8,7 +8,7 @@ bp = Blueprint('order_routes', __name__)
 
 order_service = OrderService()
 
-@bp.route('', methods=['POST'])
+@bp.route('/api/orders', methods=['POST'])
 @jwt_required()
 @csrf.exempt
 def create_order():

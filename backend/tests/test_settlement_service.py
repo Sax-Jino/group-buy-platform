@@ -6,9 +6,16 @@ from models.order import Order
 from models.settlement import Settlement, SettlementStatement
 from models.user import User
 from extensions import db
+from backend.app import create_app
+from config import TestingConfig
 
 class TestSettlementService(unittest.TestCase):
     def setUp(self):
+        self.app = create_app()
+        self.app.config.from_object(TestingConfig)
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        
         # 創建測試用戶
         self.supplier = User(id='supplier1', role='supplier')
         self.big_mom = User(id='big_mom1', role='member', group_mom_level=3)
@@ -26,6 +33,9 @@ class TestSettlementService(unittest.TestCase):
             small_mom_id=self.small_mom.id,
             calculation_verified=True
         )
+
+    def tearDown(self):
+        self.app_context.pop()
 
     @patch('services.settlement_service.datetime')
     def test_create_settlement_period(self, mock_datetime):

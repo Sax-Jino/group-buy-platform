@@ -1,5 +1,6 @@
 from extensions import db
 from datetime import datetime
+from .platform_balance import PlatformBalance
 
 class CompanyAccount(db.Model):
     __tablename__ = 'company_accounts'

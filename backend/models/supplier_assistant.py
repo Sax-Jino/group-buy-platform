@@ -15,4 +15,4 @@ class SupplierAssistant(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # 關聯
-    supplier = db.relationship('User', backref='assistants')
+    supplier = db.relationship('User', backref='supplier_assistants')

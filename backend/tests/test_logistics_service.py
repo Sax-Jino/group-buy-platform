@@ -1,12 +1,23 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from services.logistics_service import LogisticsService
+from backend.app import create_app
+from config import TestingConfig
 
 @pytest.fixture
 def mock_app_config(monkeypatch):
     class MockApp:
         config = {'AFTERSHIP_API_KEY': 'fake-key'}
     monkeypatch.setattr('services.logistics_service.current_app', MockApp())
+
+@pytest.fixture(scope='module', autouse=True)
+def app_context():
+    app = create_app()
+    app.config.from_object(TestingConfig)
+    ctx = app.app_context()
+    ctx.push()
+    yield
+    ctx.pop()
 
 @patch('services.logistics_service.tracking')
 def test_track_shipment_success(mock_tracking, mock_app_config):

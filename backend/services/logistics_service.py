@@ -2,8 +2,7 @@ from datetime import datetime
 from extensions import db
 from models.order import Order
 from models.logistics_company import LogisticsCompany
-import tracking
-from tracking import auth, exceptions
+import aftership
 from flask import current_app
 import logging
 from celery import shared_task
@@ -22,9 +21,9 @@ def update_tracking_status(order_id):
         order = Order.query.get(order_id)
         if order and order.tracking_number and order.logistics_company_id:
             company = LogisticsCompany.query.get(order.logistics_company_id)
-            tracking = service.track_shipment(order.tracking_number, company.aftership_slug)
-            if tracking:
-                service._update_order_status(order, tracking)
+            tracking_info = service.track_shipment(order.tracking_number, company.aftership_slug)
+            if tracking_info:
+                service._update_order_status(order, tracking_info)
     except Exception as e:
         logger.error(f'Failed to update tracking status for order {order_id}: {str(e)}')
 
@@ -38,16 +37,13 @@ class LogisticsService:
                 self.api_key = current_app.config.get('AFTERSHIP_API_KEY')
             except RuntimeError:
                 self.api_key = None
+        
         if self.api_key:
-            self.api = tracking.Client(
-                tracking.Configuration(
-                    api_key=self.api_key,
-                    authentication_type=auth.ApiKey
-                )
-            )
+            self.api = aftership.APIv4(self.api_key)
         else:
             self.api = None
             logger.warning('AfterShip API key not configured')
+        
         self.geolocator = Nominatim(user_agent="group-buy-platform")
 
     def _get_coordinates(self, location):
@@ -112,29 +108,30 @@ class LogisticsService:
 
         # 返回模擬數據
         return self._get_mock_tracking_info(order, company)
-
+        
     def track_shipment(self, tracking_number, courier=None):
         """
         使用 AfterShip API 追蹤物流狀態
         """
+        if not self.api:
+            return None
+            
         try:
             if not courier:
-                result = self.api.detect(tracking_number)
-                if result and result.get('couriers'):
-                    courier = result['couriers'][0]['slug']
+                try:
+                    result = self.api.couriers.detect(tracking_number)
+                    if result and hasattr(result, 'couriers') and result.couriers:
+                        courier = result.couriers[0].slug
+                except Exception as e:
+                    logger.warning(f'Failed to detect courier for tracking number {tracking_number}: {str(e)}')
             
             if not courier:
                 raise ValueError('Unable to detect courier')
-                
-            tracking = self.api.get_tracking(
-                tracking_number=tracking_number,
-                slug=courier
-            )
             
-            if not tracking:
-                return None
-                
-            return tracking
+            tracking = self.api.trackings.get(tracking_number, courier)
+            if tracking and hasattr(tracking, 'tracking'):
+                return tracking.tracking
+            return None
             
         except Exception as e:
             logger.error(f'Failed to track shipment {tracking_number}: {str(e)}')

@@ -73,6 +73,6 @@ class ProductionConfig(Config):
     LOG_LEVEL = 'INFO'
 
 class TestingConfig(Config):
-    DEBUG = True
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False

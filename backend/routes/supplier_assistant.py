@@ -9,7 +9,7 @@ from extensions import db, csrf
 bp = Blueprint('supplier_assistant', __name__)
 supplier_assistant_service = SupplierAssistantService()
 
-@bp.route('', methods=['POST'])
+@bp.route('/api/supplier-assistant', methods=['POST'])
 @jwt_required()
 @supplier_required
 def create_assistant():
@@ -26,7 +26,7 @@ def create_assistant():
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
 
-@bp.route('', methods=['GET'])
+@bp.route('/api/supplier-assistant', methods=['GET'])
 @jwt_required()
 @supplier_required
 def list_assistants():

@@ -1,12 +1,20 @@
 import unittest
 from utils.profit_calculator import ProfitCalculator
-from config import Config
+from config import Config, TestingConfig
+from backend.app import create_app
 
 class TestProfitCalculator(unittest.TestCase):
     def setUp(self):
+        self.app = create_app()
+        self.app.config.from_object(TestingConfig)
+        self.app_context = self.app.app_context()
+        self.app_context.push()
         # 測試資料
         self.selling_price = 1000  # 售價
         self.cost = 700  # 成本
+
+    def tearDown(self):
+        self.app_context.pop()
 
     def test_basic_profit_calculation(self):
         """測試基本利潤計算"""

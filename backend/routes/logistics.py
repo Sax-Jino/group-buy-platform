@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from flask_login import login_required, current_user
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from services.logistics_service import LogisticsService
 from extensions import limiter
 from models.order import Order
@@ -8,14 +8,15 @@ bp = Blueprint('logistics', __name__)
 logistics_service = LogisticsService()
 
 @bp.route('/api/logistics/tracking/<int:order_id>')
-@login_required
+@jwt_required()
 @limiter.limit("30 per minute")
 def get_tracking_info(order_id):
     """
     獲取訂單的物流追蹤信息
     """
     try:
-        tracking_info = logistics_service.get_tracking_info(order_id, current_user.id)
+        current_user_id = get_jwt_identity()
+        tracking_info = logistics_service.get_tracking_info(order_id, current_user_id)
         return jsonify(tracking_info)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

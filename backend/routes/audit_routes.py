@@ -7,7 +7,7 @@ bp = Blueprint('audit_routes', __name__)
 
 audit_service = AuditService()
 
-@bp.route('', methods=['GET'])
+@bp.route('/api/audits', methods=['GET'])
 @jwt_required()
 def get_audit_reports():
     user_id = get_jwt_identity()

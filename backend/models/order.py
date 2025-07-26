@@ -6,8 +6,9 @@ from sqlalchemy.dialects.postgresql import JSON
 class Order(db.Model):
     __tablename__ = 'orders'
     
+    # 基本訂單信息
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     total_price = db.Column(db.Float, nullable=False)
@@ -24,17 +25,16 @@ class Order(db.Model):
     # 分潤明細
     profit_breakdown = db.Column(JSON)  # 存储详细的分润计算结果
     profit_distribution_log = db.Column(JSON)  # 存储分润历史记录
-    
-    # 團媽分潤相關
-    big_mom_id = db.Column(db.String(36), db.ForeignKey('users.id'))
-    middle_mom_id = db.Column(db.String(36), db.ForeignKey('users.id'))
-    small_mom_id = db.Column(db.String(36), db.ForeignKey('users.id'))
+      # 團媽分潤相關
+    big_mom_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    middle_mom_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    small_mom_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     big_mom_amount = db.Column(db.Float)
     middle_mom_amount = db.Column(db.Float)
     small_mom_amount = db.Column(db.Float)
     
     # 介紹人相關
-    referrer_id = db.Column(db.String(36), db.ForeignKey('users.id'))
+    referrer_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     referrer_bonus_amount = db.Column(db.Float)
     referrer_qualified = db.Column(db.Boolean, default=False)
     
@@ -73,6 +73,7 @@ class Order(db.Model):
     recipient_phone = db.Column(db.String(20))
     recipient_address = db.Column(db.String(200))
     recipient_notes = db.Column(db.Text)  # 收件特殊要求
+    recipient_id = db.Column(db.Integer, db.ForeignKey('recipients.id'))  # 新增：收件人ID
     
     # 物流公司關聯
     logistics_company = db.relationship('LogisticsCompany', backref='orders')
@@ -82,14 +83,13 @@ class Order(db.Model):
     received_at = db.Column(db.DateTime)  # 收貨時間
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # 關聯
-    product = db.relationship('Product', backref=db.backref('orders', lazy='dynamic'))
-    user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('orders', lazy='dynamic'))
-    big_mom = db.relationship('User', foreign_keys=[big_mom_id], backref=db.backref('big_mom_orders', lazy='dynamic'))
-    middle_mom = db.relationship('User', foreign_keys=[middle_mom_id], backref=db.backref('middle_mom_orders', lazy='dynamic'))
-    small_mom = db.relationship('User', foreign_keys=[small_mom_id], backref=db.backref('small_mom_orders', lazy='dynamic'))
-    referrer = db.relationship('User', foreign_keys=[referrer_id], backref=db.backref('referred_orders', lazy='dynamic'))
+      # 關聯
+    product = db.relationship('Product')
+    user = db.relationship('User', foreign_keys=[user_id])
+    big_mom = db.relationship('User', foreign_keys=[big_mom_id])
+    middle_mom = db.relationship('User', foreign_keys=[middle_mom_id])
+    small_mom = db.relationship('User', foreign_keys=[small_mom_id])
+    referrer = db.relationship('User', foreign_keys=[referrer_id])
     
     # 添加索引
     __table_args__ = (

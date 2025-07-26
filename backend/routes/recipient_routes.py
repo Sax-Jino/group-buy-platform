@@ -6,7 +6,7 @@ from extensions import csrf
 bp = Blueprint('recipient_routes', __name__)
 recipient_service = RecipientService()
 
-@bp.route('', methods=['GET'])
+@bp.route('/api/recipients', methods=['GET'])
 @jwt_required()
 def get_recipients():
     user_id = get_jwt_identity()
@@ -19,7 +19,7 @@ def get_recipients():
         "created_at": r.created_at.isoformat()
     } for r in recipients]), 200
 
-@bp.route('', methods=['POST'])
+@bp.route('/api/recipients', methods=['POST'])
 @jwt_required()
 @csrf.exempt
 def create_recipient():
