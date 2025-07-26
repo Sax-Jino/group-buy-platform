@@ -7,18 +7,22 @@ from backend.config import Config as AppConfig
 
 class ProfitCalculator:
     @staticmethod
-    def calculate_tax(selling_price: float, cost: float) -> float:
+    def calculate_tax(selling_price: float, cost: float, supplier_fee: float = 0) -> float:
         """計算稅金
-        公式: [(售價 - ceil(售價/1.05)) - (成本 - ceil(成本/1.05))]
+        售價稅金 = 售價 - 無條件捨去(售價/1.05)
+        成本稅金 = (成本-供應商費) - 無條件進位((成本-供應商費)/1.05)
         """
+        from math import floor, ceil
         selling_price = Decimal(str(selling_price))
         cost = Decimal(str(cost))
-        
-        selling_price_tax = selling_price - (selling_price / Decimal('1.05')).quantize(
-            Decimal('0.01'), rounding=ROUND_HALF_UP)
-        cost_tax = cost - (cost / Decimal('1.05')).quantize(
-            Decimal('0.01'), rounding=ROUND_HALF_UP)
-        
+        supplier_fee = Decimal(str(supplier_fee))
+        # 售價稅金
+        selling_price_no_tax = Decimal(floor(float(selling_price / Decimal('1.05'))))
+        selling_price_tax = selling_price - selling_price_no_tax
+        # 成本稅金
+        cost_no_supplier = cost - supplier_fee
+        cost_no_tax = Decimal(ceil(float(cost_no_supplier / Decimal('1.05'))))
+        cost_tax = cost_no_supplier - cost_no_tax
         return float(selling_price_tax - cost_tax)
 
     @staticmethod
@@ -102,14 +106,12 @@ class ProfitCalculator:
             middle_mom_profit = Decimal('0')
             small_mom_profit = Decimal('0')
             platform_profit = distributable_profit
-        # 5. 有中團媽，無大/小團媽
-        elif big_mom_rate == 0 and middle_mom_rate > 0 and not has_small_mom:
-            # 大團媽利潤歸平台，小團媽利潤歸中團媽
+        # 5. 無大有中有小：大團媽利潤歸平台，中團媽拿中團媽利潤（取整數），小團媽拿剩餘
+        elif big_mom_rate == 0 and middle_mom_rate > 0 and has_small_mom:
             big_mom_profit = Decimal('0')
-            platform_big = int(distributable_profit * Decimal('0.15'))
-            middle_mom_profit = int(distributable_profit * middle_mom_rate) + (distributable_profit - Decimal(platform_big) - int(distributable_profit * middle_mom_rate))
-            small_mom_profit = Decimal('0')
-            platform_profit = Decimal(platform_big)
+            platform_profit = int(distributable_profit * Decimal('0.15'))
+            middle_mom_profit = int(distributable_profit * middle_mom_rate)
+            small_mom_profit = distributable_profit - Decimal(platform_profit) - Decimal(middle_mom_profit)
         # 6. 有小團媽，無大/中團媽
         elif big_mom_rate == 0 and middle_mom_rate == 0 and has_small_mom:
             # 大團媽及中團媽利潤歸平台
@@ -180,8 +182,14 @@ class ProfitCalculator:
         selling_price = Decimal(str(selling_price))
         cost = Decimal(str(cost))
 
-        # 計算稅金
-        tax_amount = Decimal(str(ProfitCalculator.calculate_tax(float(selling_price), float(cost))))
+
+        from math import ceil
+        platform_fee = Decimal(ceil(float(Decimal(str(config['platform_fee_rate'])) * selling_price)))
+        supplier_fee = Decimal(ceil(float(Decimal(str(config['supplier_fee_rate'])) * cost)))
+        referrer_bonus = Decimal(ceil(float(Decimal(str(config['referrer_bonus_rate'])) * cost))) if has_referrer else Decimal('0')
+
+        # 計算稅金（需傳入供應商費）
+        tax_amount = Decimal(str(ProfitCalculator.calculate_tax(float(selling_price), float(cost), float(supplier_fee))))
 
         # 計算基本費用
         platform_fee = selling_price * Decimal(str(config['platform_fee_rate']))
@@ -198,7 +206,6 @@ class ProfitCalculator:
             cost -
             tax_amount -
             platform_fee -
-            supplier_fee -
             referrer_bonus
         )
 

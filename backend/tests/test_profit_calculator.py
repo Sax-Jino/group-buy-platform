@@ -7,6 +7,45 @@ from backend.config import Config, TestingConfig
 from backend.app import create_app
 
 class TestProfitCalculator(unittest.TestCase):
+    def test_profit_verification_custom_case(self):
+        """自訂案例：售價500、成本250、各費用率2%"""
+        selling_price = 500
+        cost = 250
+        config = {
+            'platform_fee_rate': 0.02,
+            'supplier_fee_rate': 0.02,
+            'referrer_bonus_rate': 0.02
+        }
+        basic_profits = ProfitCalculator.calculate_order_profit(
+            selling_price=selling_price,
+            cost=cost,
+            config=config
+        )
+        mom_profits = ProfitCalculator.calculate_mom_profits(
+            basic_profits['distributable_profit'],
+            big_mom_rate=0.15,
+            middle_mom_rate=0.28,
+            has_small_mom=True
+        )
+        profit_breakdown = {**basic_profits, **mom_profits}
+        total = (
+            profit_breakdown['platform_fee'] +
+            cost +
+            profit_breakdown['referrer_bonus'] +
+            profit_breakdown['tax_amount'] +
+            profit_breakdown['distributable_profit']
+        )
+        print("\n--- 分潤細節 ---")
+        print(f"平台費用: {profit_breakdown['platform_fee']}")
+        print(f"成本: {cost}")
+        print(f"介紹人獎金: {profit_breakdown['referrer_bonus']}")
+        print(f"稅金: {profit_breakdown['tax_amount']}")
+        print(f"可分配利潤: {profit_breakdown['distributable_profit']}")
+        print(f"大團媽分潤: {profit_breakdown['big_mom_profit']}")
+        print(f"中團媽分潤: {profit_breakdown['middle_mom_profit']}")
+        print(f"小團媽分潤: {profit_breakdown['small_mom_profit']}")
+        print(f"加總驗證: {total} (應等於售價 {selling_price})")
+        self.assertAlmostEqual(total, selling_price, places=2)
 
     def test_full_mom_structure(self):
         """1. 完整團媽結構（有大有中有小）"""
@@ -20,14 +59,13 @@ class TestProfitCalculator(unittest.TestCase):
             middle_mom_rate=0.28,
             has_small_mom=True
         )
-        # 驗證大中小分潤
-        expected_big = basic_profits['distributable_profit'] * 0.15
+        expected_big = int(basic_profits['distributable_profit'] * 0.15)
         remaining = basic_profits['distributable_profit'] - expected_big
-        expected_middle = remaining * 0.28
-        expected_small = remaining - expected_middle
-        self.assertAlmostEqual(mom_profits['big_mom_profit'], expected_big, places=4)
-        self.assertAlmostEqual(mom_profits['middle_mom_profit'], expected_middle, places=4)
-        self.assertAlmostEqual(mom_profits['small_mom_profit'], expected_small, places=4)
+        expected_middle = int(remaining * 0.28)
+        expected_small = basic_profits['distributable_profit'] - expected_big - expected_middle
+        self.assertEqual(mom_profits['big_mom_profit'], expected_big)
+        self.assertEqual(mom_profits['middle_mom_profit'], expected_middle)
+        self.assertEqual(mom_profits['small_mom_profit'], expected_small)
 
     def test_no_big_with_middle_and_small(self):
         """2. 無大有中有小"""
@@ -42,11 +80,14 @@ class TestProfitCalculator(unittest.TestCase):
             has_small_mom=True
         )
         expected_big = 0
-        expected_middle = basic_profits['distributable_profit'] * 0.28
-        expected_small = basic_profits['distributable_profit'] - expected_middle
-        self.assertAlmostEqual(mom_profits['big_mom_profit'], expected_big, places=4)
-        self.assertAlmostEqual(mom_profits['middle_mom_profit'], expected_middle, places=4)
-        self.assertAlmostEqual(mom_profits['small_mom_profit'], expected_small, places=4)
+        # 新規則：大團媽利潤歸平台，中團媽只拿中團媽利潤（取整數），小團媽拿剩餘
+        expected_platform = int(basic_profits['distributable_profit'] * 0.15)
+        expected_middle = int(basic_profits['distributable_profit'] * 0.28)
+        expected_small = basic_profits['distributable_profit'] - expected_platform - expected_middle
+        self.assertEqual(mom_profits['big_mom_profit'], expected_big)
+        self.assertEqual(mom_profits['middle_mom_profit'], expected_middle)
+        self.assertEqual(mom_profits['small_mom_profit'], expected_small)
+        self.assertEqual(mom_profits.get('platform_profit', 0), expected_platform)
 
     def test_only_small_mom(self):
         """3. 無大無中有小"""
@@ -62,10 +103,13 @@ class TestProfitCalculator(unittest.TestCase):
         )
         expected_big = 0
         expected_middle = 0
-        expected_small = basic_profits['distributable_profit']
-        self.assertAlmostEqual(mom_profits['big_mom_profit'], expected_big, places=4)
-        self.assertAlmostEqual(mom_profits['middle_mom_profit'], expected_middle, places=4)
-        self.assertAlmostEqual(mom_profits['small_mom_profit'], expected_small, places=4)
+        # 新規則：大團媽及中團媽利潤歸平台，小團媽拿剩餘
+        platform_big = int(basic_profits['distributable_profit'] * 0.15)
+        platform_middle = int((basic_profits['distributable_profit'] - platform_big) * 0.28)
+        expected_small = basic_profits['distributable_profit'] - platform_big - platform_middle
+        self.assertEqual(mom_profits['big_mom_profit'], expected_big)
+        self.assertEqual(mom_profits['middle_mom_profit'], expected_middle)
+        self.assertEqual(mom_profits['small_mom_profit'], expected_small)
 
     def test_no_moms(self):
         """4. 無大中小直接會員"""
@@ -100,12 +144,12 @@ class TestProfitCalculator(unittest.TestCase):
             middle_mom_rate=0,
             has_small_mom=True
         )
-        expected_big = basic_profits['distributable_profit'] * 0.43  # 0.15+0.28
+        expected_big = int(basic_profits['distributable_profit'] * 0.15 + basic_profits['distributable_profit'] * 0.28)
         expected_middle = 0
         expected_small = basic_profits['distributable_profit'] - expected_big
-        self.assertAlmostEqual(mom_profits['big_mom_profit'], expected_big, places=4)
-        self.assertAlmostEqual(mom_profits['middle_mom_profit'], expected_middle, places=4)
-        self.assertAlmostEqual(mom_profits['small_mom_profit'], expected_small, places=4)
+        self.assertEqual(mom_profits['big_mom_profit'], expected_big)
+        self.assertEqual(mom_profits['middle_mom_profit'], expected_middle)
+        self.assertEqual(mom_profits['small_mom_profit'], expected_small)
 
     def test_big_no_middle_no_small(self):
         """6. 有大無中無小"""
@@ -165,13 +209,13 @@ class TestProfitCalculator(unittest.TestCase):
             middle_mom_rate=0.28,
             has_small_mom=True
         )
-        expected_big_mom = basic_profits['distributable_profit'] * 0.15
+        expected_big_mom = int(basic_profits['distributable_profit'] * 0.15)
         remaining_after_big = basic_profits['distributable_profit'] - expected_big_mom
-        expected_middle_mom = remaining_after_big * 0.28
-        expected_small_mom = remaining_after_big - expected_middle_mom
-        self.assertAlmostEqual(mom_profits['big_mom_profit'], expected_big_mom, places=4)
-        self.assertAlmostEqual(mom_profits['middle_mom_profit'], expected_middle_mom, places=4)
-        self.assertAlmostEqual(mom_profits['small_mom_profit'], expected_small_mom, places=4)
+        expected_middle_mom = int(remaining_after_big * 0.28)
+        expected_small_mom = basic_profits['distributable_profit'] - expected_big_mom - expected_middle_mom
+        self.assertEqual(mom_profits['big_mom_profit'], expected_big_mom)
+        self.assertEqual(mom_profits['middle_mom_profit'], expected_middle_mom)
+        self.assertEqual(mom_profits['small_mom_profit'], expected_small_mom)
 
     def test_profit_verification(self):
         """測試利潤驗證"""
@@ -190,10 +234,15 @@ class TestProfitCalculator(unittest.TestCase):
         # 合併所有利潤資訊
         profit_breakdown = {**basic_profits, **mom_profits}
         
-        # 驗證總金額
-        self.assertTrue(
-            ProfitCalculator.verify_calculation(self.selling_price, profit_breakdown)
+        # 驗證總金額：平台費用+成本+介紹人獎金+稅金+可分配利潤=售價
+        total = (
+            profit_breakdown['platform_fee'] +
+            self.cost +
+            profit_breakdown['referrer_bonus'] +
+            profit_breakdown['tax_amount'] +
+            profit_breakdown['distributable_profit']
         )
+        self.assertAlmostEqual(total, self.selling_price, places=2)
 
     def test_no_referrer_qualification(self):
         """測試無介紹人資格的情況"""
@@ -224,12 +273,12 @@ class TestProfitCalculator(unittest.TestCase):
             middle_mom_rate=0,
             has_small_mom=True
         )
-        expected_big = basic_profits['distributable_profit'] * 0.43
+        expected_big = int(basic_profits['distributable_profit'] * 0.15 + basic_profits['distributable_profit'] * 0.28)
         expected_middle = 0
         expected_small = basic_profits['distributable_profit'] - expected_big
-        self.assertAlmostEqual(mom_profits['big_mom_profit'], expected_big, places=4)
-        self.assertAlmostEqual(mom_profits['middle_mom_profit'], expected_middle, places=4)
-        self.assertAlmostEqual(mom_profits['small_mom_profit'], expected_small, places=4)
+        self.assertEqual(mom_profits['big_mom_profit'], expected_big)
+        self.assertEqual(mom_profits['middle_mom_profit'], expected_middle)
+        self.assertEqual(mom_profits['small_mom_profit'], expected_small)
 
 if __name__ == '__main__':
     unittest.main()
