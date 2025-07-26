@@ -2,6 +2,7 @@ import os
 from flask import Flask, request
 from flask_cors import CORS
 from backend.config import Config
+from backend.extensions import db, jwt, socketio, limiter, mail, babel, login_manager
 from backend.tasks.settlement_tasks import setup_settlement_tasks
 
 def create_app(config_class=None):
